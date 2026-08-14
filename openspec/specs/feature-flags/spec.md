@@ -44,7 +44,7 @@ The system SHALL merge project-level and per-collection flag settings and emit t
 
 #### Scenario: Resolved flags emitted
 
-- **WHEN** `cms generate` runs
+- **WHEN** `blaze generate` runs
 - **THEN** the emitted app config contains the effective enabled state for each capability, including per-collection overrides
 
 ### Requirement: Invalid feature flags are rejected
