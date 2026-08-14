@@ -1,6 +1,8 @@
 import { SchemaLoader, SchemaValidator } from "@blazing-cms/schema";
 import { resolve } from "node:path";
 
+import { loadProjectConfig } from "./load-config.js";
+
 export interface LintOptions {
   dir?: string;
   fix?: boolean;
@@ -23,6 +25,27 @@ export async function lint(options: LintOptions): Promise<void> {
       for (const err of errors) {
         console.warn(`  ✗ ${err.path}: ${err.message}`);
       }
+    }
+  }
+
+  for (const global of schema.globals) {
+    const errors = validator.validateGlobal(global);
+    if (errors.length > 0) {
+      hasErrors = true;
+      console.warn(`\nGlobal "${global.slug}":`);
+      for (const err of errors) {
+        console.warn(`  ✗ ${err.path}: ${err.message}`);
+      }
+    }
+  }
+
+  const { capabilities } = await loadProjectConfig();
+  const capabilityErrors = validator.validateCapabilities(capabilities);
+  if (capabilityErrors.length > 0) {
+    hasErrors = true;
+    console.warn("\nblazing-cms.config.ts:");
+    for (const err of capabilityErrors) {
+      console.warn(`  ✗ ${err.path}: ${err.message}`);
     }
   }
 

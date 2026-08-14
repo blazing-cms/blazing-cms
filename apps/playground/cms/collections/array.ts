@@ -2,15 +2,14 @@ import { defineCollection, text, array } from "@blazing-cms/schema";
 
 export default defineCollection({
   fields: [
-    text("title"),
+    text("title", { label: "Title", validation: { required: true } }),
     array("field", {
       fields: [text("item")],
       label: "Array Field",
     }),
-    text("field3"),
   ],
   labels: {
-    plural: "Array Field",
+    plural: "Array Fields",
     singular: "Array Field",
   },
   slug: "array",

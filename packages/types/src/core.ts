@@ -1,3 +1,5 @@
+import type { CapabilitiesConfig } from "./capabilities.js";
+
 export interface Logger {
   debug(...args: unknown[]): void;
   info(...args: unknown[]): void;
@@ -26,6 +28,8 @@ export interface Config {
     bucket?: string | undefined;
   };
   plugins: Record<string, unknown>;
+  /** Project-level capability configuration (feature flags + capability settings). */
+  capabilities?: CapabilitiesConfig | undefined;
   [key: string]: unknown;
 }
 

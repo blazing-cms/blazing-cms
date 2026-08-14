@@ -70,13 +70,103 @@
       },
       {
         "files": ["packages/cms/src/admin/components/field-input.tsx"],
-        "maxCrap": 50,
-        "reason": "FieldLabel with required indicator JSX and nullish coalescing"
+        "maxCrap": 115,
+        "reason": "per-field-type input renderer with required indicator and RBAC read/write gates"
       },
       {
         "files": ["packages/schema/src/loader.ts"],
         "maxCrap": 60,
         "reason": "SchemaLoader with ESM dynamic imports — both cached and fresh variants"
+      },
+      {
+        "files": ["packages/cms/src/admin/components/sidebar.tsx"],
+        "maxCrap": 320,
+        "reason": "nav section builder filtering collections and system links by RBAC grants and capability flags"
+      },
+      {
+        "files": ["packages/cms/src/admin/routes/collections/$slug.tsx"],
+        "maxCrap": 95,
+        "reason": "entry list with fallback title resolution, status badges, and create gate"
+      },
+      {
+        "files": ["packages/cms/src/admin/routes/collections/$slug.$id.revisions.tsx"],
+        "maxCrap": 35,
+        "reason": "revisions route with RBAC read gate and versioning capability gate"
+      },
+      {
+        "files": ["packages/cms/src/admin/routes/collections/new.$slug.tsx"],
+        "maxCrap": 35,
+        "reason": "entry form with RBAC create gate and back navigation"
+      },
+      {
+        "files": ["packages/cms/src/admin/routes/collections/$slug.$id.edit.tsx"],
+        "maxCrap": 60,
+        "reason": "entry editor with RBAC update gate, capability-gated workflow/versioning panels, and delete flow"
+      },
+      {
+        "files": ["packages/cms/src/admin/routes/users/index.tsx"],
+        "maxCrap": 35,
+        "reason": "user list with role badges from user_roles join and manage gate"
+      },
+      {
+        "files": ["packages/cms/src/admin/routes/users/new.tsx"],
+        "maxCrap": 60,
+        "reason": "user form with role checkbox list and RBAC save gate"
+      },
+      {
+        "files": ["packages/cms/src/admin/routes/users/$id.tsx"],
+        "maxCrap": 60,
+        "reason": "user detail with role assignment editor and delete flow"
+      },
+      {
+        "files": ["packages/cms/src/admin/routes/roles/index.tsx"],
+        "maxCrap": 35,
+        "reason": "role list with grant summary chips and manage gate"
+      },
+      {
+        "files": ["packages/cms/src/admin/routes/media/$id.tsx"],
+        "maxCrap": 45,
+        "reason": "media detail route with replace/delete/usage actions gated by manageMedia"
+      },
+      {
+        "files": ["packages/cms/src/admin/components/notification-bell.tsx"],
+        "maxCrap": 60,
+        "reason": "notification dropdown with unread badge, mark-read flow, and entry navigation"
+      },
+      {
+        "files": ["packages/cms/src/admin/components/workflow-panel.tsx"],
+        "maxCrap": 60,
+        "reason": "workflow state panel with reviewer assignment, comment entry, transitions, and history timeline"
+      },
+      {
+        "files": ["packages/cms/src/admin/lib/providers/firebase.ts"],
+        "maxCrap": 40,
+        "reason": "workflow transition and notification helpers alongside RBAC-aware provider methods"
+      },
+      {
+        "files": ["packages/sdk/src/workflow.ts"],
+        "maxCrap": 35,
+        "reason": "workflow transition API with existence guard, optional reviewer notification, and patch composition"
+      },
+      {
+        "files": ["packages/schema/src/validator.ts"],
+        "maxCrap": 140,
+        "reason": "capability config validation (validateCapabilities, collection/global feature validators) plus field validation"
+      },
+      {
+        "files": ["packages/sdk/src/client.ts"],
+        "maxCrap": 140,
+        "reason": "createBlazeClient with per-capability disabled stubs and write gating"
+      },
+      {
+        "files": ["packages/cms/src/commands/generate.ts"],
+        "maxCrap": 100,
+        "reason": "rules generation gated on resolved capability flags (content, per-collection workflow/versioning, rbac, media, notifications)"
+      },
+      {
+        "files": ["packages/cms/src/commands/load-config.ts"],
+        "maxCrap": 80,
+        "reason": "jiti-based project config loader with graceful fallback and cwd resolution"
       }
     ]
   },
@@ -88,8 +178,16 @@
     "ignore": [
       "packages/cms/src/commands/scaffold.ts",
       "packages/cms/src/admin/routes/schemas/new.tsx",
+      "packages/cms/src/admin/routes/users/$id.tsx",
+      "packages/cms/src/admin/routes/globals/$slug.tsx",
       "packages/cms/src/admin/lib/providers/firebase.ts",
-      "packages/sdk/src/collection.ts"
+      "packages/cms/src/admin/lib/providers/analytics-helpers.ts",
+      "packages/cms/src/admin/lib/media/validation.ts",
+      "packages/cms/src/admin/lib/media/usage.ts",
+      "packages/sdk/src/types.ts",
+      "packages/sdk/src/collection.ts",
+      "packages/sdk/src/analytics.ts",
+      "packages/sdk/src/media.ts"
     ]
   },
   "entry": ["packages/*/src/index.ts", "scripts/serve-spa.mjs"]

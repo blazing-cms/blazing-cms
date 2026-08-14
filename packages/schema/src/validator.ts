@@ -3,7 +3,14 @@ import type {
   GlobalDefinition,
   ComponentDefinition,
   FieldDefinition,
+  CapabilitiesConfig,
 } from "@blazing-cms/types";
+
+import {
+  CAPABILITY_NAMES,
+  COLLECTION_SCOPED_CAPABILITIES,
+  GLOBAL_SCOPED_CAPABILITIES,
+} from "./capabilities.js";
 
 export interface ValidationError {
   path: string;
@@ -28,6 +35,7 @@ export class SchemaValidator {
     for (const field of collection.fields) {
       errors.push(...this.validateField(field, `fields.${field.name}`));
     }
+    errors.push(...this.validateCollectionFeatures(collection.config, "config"));
     return errors;
   }
 
@@ -42,6 +50,7 @@ export class SchemaValidator {
     for (const field of global.fields) {
       errors.push(...this.validateField(field, `fields.${field.name}`));
     }
+    errors.push(...this.validateGlobalFeatures(global.config, "config"));
     return errors;
   }
 
@@ -83,6 +92,107 @@ export class SchemaValidator {
         message: "Component slug is required for component fields",
         path: `${path}.component`,
       });
+    }
+    return errors;
+  }
+
+  /**
+   * Validates project-level capability config: rejects unknown capability
+   * names, non-object settings, non-boolean `enabled` flags, and non-numeric
+   * capability settings.
+   */
+  validateCapabilities(capabilities?: CapabilitiesConfig | undefined): ValidationError[] {
+    const errors: ValidationError[] = [];
+    if (!capabilities) {
+      return errors;
+    }
+    for (const [name, settings] of Object.entries(capabilities)) {
+      const path = `capabilities.${name}`;
+      if (!CAPABILITY_NAMES.includes(name as (typeof CAPABILITY_NAMES)[number])) {
+        errors.push({ message: `Unknown capability "${name}"`, path });
+        continue;
+      }
+      if (settings === null || typeof settings !== "object") {
+        errors.push({ message: `Capability "${name}" config must be an object`, path });
+        continue;
+      }
+      const entry = settings as Record<string, unknown>;
+      if (entry.enabled !== undefined && typeof entry.enabled !== "boolean") {
+        errors.push({
+          message: `Feature flag for "${name}" must be a boolean, got ${typeof entry.enabled}`,
+          path: `${path}.enabled`,
+        });
+      }
+      for (const numericKey of ["staleTimeMs", "maxFileSize", "maxPerDoc"] as const) {
+        if (entry[numericKey] !== undefined && typeof entry[numericKey] !== "number") {
+          errors.push({
+            message: `"${numericKey}" must be a number, got ${typeof entry[numericKey]}`,
+            path: `${path}.${numericKey}`,
+          });
+        }
+      }
+    }
+    return errors;
+  }
+
+  private validateCollectionFeatures(
+    config: CollectionDefinition["config"],
+    path: string,
+  ): ValidationError[] {
+    const errors: ValidationError[] = [];
+    const features = config?.features;
+    if (!features) {
+      return errors;
+    }
+    for (const [name, value] of Object.entries(features)) {
+      const featurePath = `${path}.features.${name}`;
+      if (
+        !COLLECTION_SCOPED_CAPABILITIES.includes(
+          name as (typeof COLLECTION_SCOPED_CAPABILITIES)[number],
+        )
+      ) {
+        errors.push({
+          message: `Unknown collection-scoped capability "${name}". Only ${COLLECTION_SCOPED_CAPABILITIES.join(", ")} are supported per collection`,
+          path: featurePath,
+        });
+        continue;
+      }
+      if (typeof value !== "boolean") {
+        errors.push({
+          message: `Feature flag for "${name}" must be a boolean, got ${typeof value}`,
+          path: featurePath,
+        });
+      }
+    }
+    return errors;
+  }
+
+  private validateGlobalFeatures(
+    config: GlobalDefinition["config"],
+    path: string,
+  ): ValidationError[] {
+    const errors: ValidationError[] = [];
+    const features = config?.features;
+    if (!features) {
+      return errors;
+    }
+    for (const [name, value] of Object.entries(features)) {
+      const featurePath = `${path}.features.${name}`;
+      if (
+        !GLOBAL_SCOPED_CAPABILITIES.includes(name as (typeof GLOBAL_SCOPED_CAPABILITIES)[number])
+      ) {
+        errors.push({
+          message: `Unknown global-scoped capability "${name}". Only ${GLOBAL_SCOPED_CAPABILITIES.join(", ")} are supported per global`,
+          path: featurePath,
+        });
+        continue;
+      }
+      if (typeof value !== "boolean") {
+        errors.push({
+          message: `Feature flag for "${name}" must be a boolean, got ${typeof value}`,
+          path: featurePath,
+        });
+      }
     }
     return errors;
   }

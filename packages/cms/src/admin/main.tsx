@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ToastProvider } from "@/components/toast-provider";
 import { AuthProvider } from "@/lib/auth";
 import { DataProviderWrapper } from "@/lib/providers/index";
+import { RbacProvider } from "@/lib/rbac";
 import { routeTree } from "@/router";
 
 import "./index.css";
@@ -27,11 +28,13 @@ export function App() {
       <ThemeProvider defaultTheme="system" storageKey="blazing-cms-theme">
         <AuthProvider>
           <DataProviderWrapper>
-            <ToastProvider>
-              <ErrorBoundary>
-                <RouterProvider router={router} />
-              </ErrorBoundary>
-            </ToastProvider>
+            <RbacProvider>
+              <ToastProvider>
+                <ErrorBoundary>
+                  <RouterProvider router={router} />
+                </ErrorBoundary>
+              </ToastProvider>
+            </RbacProvider>
           </DataProviderWrapper>
         </AuthProvider>
       </ThemeProvider>

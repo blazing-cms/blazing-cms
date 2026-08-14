@@ -5,6 +5,8 @@ import { renderBasicInput } from "@/components/field-types/basic-inputs";
 import { renderMediaInput } from "@/components/field-types/media-inputs";
 import { renderStructureInput, type RenderChild } from "@/components/field-types/structure-inputs";
 import { renderTextInput } from "@/components/field-types/text-inputs";
+import { rolesOverlap, usePermissions } from "@/lib/rbac";
+import { cn } from "@/lib/utils";
 
 interface FieldInputProps {
   field: FieldDefinition;
@@ -83,14 +85,22 @@ function renderField(
 }
 
 export function FieldInput({ error, field, onChange, value }: FieldInputProps) {
+  const { roleIds } = usePermissions();
+  const fieldPerms = field.admin?.permissions;
+  const canRead = rolesOverlap(roleIds, fieldPerms?.read);
+  const canWrite = rolesOverlap(roleIds, fieldPerms?.write);
+
+  if (!canRead) return null;
+
   const fieldId = `field-${field.name}`;
+  const handleChange = canWrite ? onChange : () => undefined;
   return (
-    <div className="space-y-2">
+    <div className={cn("space-y-2", !canWrite && "opacity-60")}>
       <FieldLabel field={field} fieldId={fieldId} />
       {field.admin?.description && (
         <p className="text-xs text-muted-foreground">{field.admin.description}</p>
       )}
-      {renderField(field, value, onChange, fieldId)}
+      {renderField(field, value, handleChange, fieldId)}
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );

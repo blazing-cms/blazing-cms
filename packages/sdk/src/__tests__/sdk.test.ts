@@ -186,6 +186,7 @@ describe("createCollectionApi", () => {
   });
 
   it("update calls updateDoc without id field", async () => {
+    vi.mocked(fsMod.getDoc).mockResolvedValue(makeSnap("doc-1", undefined, false) as never);
     const { createCollectionApi } = await import("../collection.js");
     const api = createCollectionApi(mockDb as never, "posts");
     await api.update("doc-1", { id: "doc-1", title: "Updated" });
@@ -291,6 +292,7 @@ describe("createGlobalApi", () => {
   it("upsert calls setDoc with merge", async () => {
     const mockDocRef = { id: "value" };
     vi.mocked(fsMod.doc).mockReturnValue(mockDocRef as never);
+    vi.mocked(fsMod.getDoc).mockResolvedValue({ exists: () => false } as never);
     const { createGlobalApi } = await import("../global.js");
     const api = createGlobalApi(mockDb as never);
     await api.upsert("site-settings", { title: "New Site" });

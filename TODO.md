@@ -58,105 +58,98 @@
 
 ---
 
-## Current Milestone: Admin Analytics
+## Current Milestone: Admin Analytics ✅
 
-- [ ] **Data layer** — Firestore composite indexes for time-range queries; analytics type definitions
-- [ ] **Analytics queries (SDK)** — `getContentCounts()`, `getContentByCollection()`, `getContentChangesOverTime()`, `getStorageUsage()`, `getUserActivity()`
-- [ ] **Dashboard widgets** — content stats (total collections, entries, globals, media, users)
-- [ ] **Per-collection chart** — entry counts as bar/pie chart
-- [ ] **Content changes over time** — line chart with time period selector (7d, 30d, 90d)
-- [ ] **Storage usage** — total + breakdown by file type
-- [ ] **User activity** — active users count + top contributors
-- [ ] **Dedicated analytics page** — full-page view with all widgets
-- [ ] **SDK config** — enabled flag, caching stale time
-- [ ] **Tests** — SDK methods + admin UI widget tests
-
----
-
-## Current Milestone: Media Library
-
-- [ ] **Firestore schema + indexes** — folders, tags, metadata model
-- [ ] **Storage bucket rules** — upload security, file type/max-size enforcement
-- [ ] **Upload implementation** — `uploadBytesResumable` with progress, drag-drop + click
-- [ ] **Media CRUD** — list, detail, rename, replace, delete (Storage + Firestore)
-- [ ] **Folder & tag organization** — Firestore-based folder tree, tags as array
-- [ ] **Search** — by filename, alt text, caption, tags
-- [ ] **Usage tracking** — find references across collections
-- [ ] **Admin UI: media grid/list view** — thumbnail grid + list toggle
-- [ ] **Admin UI: detail page** — metadata, preview, replace/delete actions
-- [ ] **Admin UI: folder tree** — sidebar folder navigation
-- [ ] **Admin UI: media picker** — reusable component for field-level media selection
-- [ ] **SDK methods** — media CRUD, search, usage queries
-- [ ] **Tests** — upload, CRUD, search, usage tracking
+- [x] **Data layer** — Firestore composite indexes for time-range queries; analytics type definitions
+- [x] **Analytics queries (SDK)** — `getContentCounts()`, `getContentByCollection()`, `getContentChangesOverTime()`, `getStorageUsage()`, `getUserActivity()`
+- [x] **Dashboard widgets** — content stats (total collections, entries, globals, media, users)
+- [x] **Per-collection chart** — entry counts as bar/pie chart
+- [x] **Content changes over time** — line chart with time period selector (7d, 30d, 90d)
+- [x] **Storage usage** — total + breakdown by file type
+- [x] **User activity** — active users count + top contributors
+- [x] **Dedicated analytics page** — full-page view with all widgets
+- [x] **SDK config** — enabled flag, caching stale time
+- [x] **Tests** — SDK methods + admin UI widget tests
 
 ---
 
-## Current Milestone: RBAC
+## Current Milestone: Media Library ✅
 
-- [ ] **RBAC data models** — roles and user_roles Firestore collections
-- [ ] **Role CRUD** — create/edit/delete roles with permission flags
-- [ ] **User-role assignment** — multiple roles per user, merged union
-- [ ] **Permission cache** — React context, refreshed on auth state change
-- [ ] **Security Rules enforcement** — deny unauthorized writes (definitive layer)
-- [ ] **UI-side enforcement** — hide/disable restricted actions
-- [ ] **Field-level permissions** — read-only or hidden per field group
-- [ ] **Deny logging** — denied access logged to `access_logs` collection
-- [ ] **Migration** — existing access control patterns → RBAC
-- [ ] **SDK methods** — role/user-role CRUD
-- [ ] **Tests** — RBAC enforcement, Security Rules, UI integration
-
----
-
-## Current Milestone: Content Versioning
-
-- [ ] **Version schema + indexes** — subcollection under each entry/global
-- [ ] **Pre-update snapshot hook** — save current state as new version before each update
-- [ ] **Version list** — chronological with metadata (number, author, timestamp, summary)
-- [ ] **Side-by-side diff** — compare any two versions
-- [ ] **Single version view** — read-only view of a past version
-- [ ] **Rollback** — save current as new version, restore target (reversible)
-- [ ] **Pruning** — count-based (keep last N) + optional age-based TTL
-- [ ] **Manual deletion** — remove specific versions
-- [ ] **Admin UI: timeline view** — version history panel on entry detail page
-- [ ] **Admin UI: diff view** — side-by-side comparison UI
-- [ ] **Admin UI: rollback dialog** — confirmation with summary
-- [ ] **Global versioning** — same mechanics for globals
-- [ ] **SDK methods** — `versions.list()`, `versions.restore()`, `versions.delete()`
-- [ ] **Tests** — snapshot, rollback, pruning, global versioning
+- [x] **Firestore schema + indexes** — folders, tags, metadata model
+- [x] **Storage bucket rules** — upload security, file type/max-size enforcement
+- [x] **Upload implementation** — `uploadBytesResumable` with progress, drag-drop + click
+- [x] **Media CRUD** — list, detail, rename, replace, delete (Storage + Firestore)
+- [x] **Folder & tag organization** — Firestore-based folder tree, tags as array
+- [x] **Search** — by filename, alt text, caption, tags
+- [x] **Usage tracking** — find references across collections
+- [x] **Admin UI: media grid/list view** — thumbnail grid + list toggle
+- [x] **Admin UI: detail page** — metadata, preview, replace/delete actions
+- [x] **Admin UI: folder tree** — sidebar folder navigation
+- [x] **Admin UI: media picker** — reusable component for field-level media selection
+- [x] **SDK methods** — media CRUD, search, usage queries
+- [x] **Tests** — upload, CRUD, search, usage tracking
 
 ---
 
-## Current Milestone: Content Workflow
+## Current Milestone: RBAC ✅
 
-- [ ] **Workflow state machine schema** — `workflowState` field on entries
-- [ ] **Workflow config on collection schema** — states, transitions, required roles
-- [ ] **Default states** — Draft → Review → Published; custom states in config
-- [ ] **Transition logic** — validate transition is allowed per config
-- [ ] **Reviewer assignment** — by specific user or by role
-- [ ] **In-app notifications** — Firestore `notifications` collection listener
-- [ ] **Audit log** — chronological transitions (from → to, user, timestamp, comment)
-- [ ] **Admin UI: state indicator** — badge in entry header
-- [ ] **Admin UI: transition buttons** — Submit for Review, Approve/Publish, Reject, Unpublish
-- [ ] **Admin UI: reviewer selector** — assign reviewer on submission
-- [ ] **Admin UI: history panel** — workflow timeline with comments
-- [ ] **Security Rules** — enforce valid state transitions
-- [ ] **SDK methods** — transition, assign, history queries
-- [ ] **Tests** — state machine, enforcement, notifications, audit log
+- [x] **RBAC data models** — roles and user_roles Firestore collections
+- [x] **Role CRUD** — create/edit/delete roles with permission flags
+- [x] **User-role assignment** — multiple roles per user, merged union
+- [x] **Permission cache** — React context, refreshed on auth state change
+- [x] **Security Rules enforcement** — deny unauthorized writes (definitive layer)
+- [x] **UI-side enforcement** — hide/disable restricted actions
+- [x] **Field-level permissions** — read-only or hidden per field group
+- [x] **Deny logging** — denied access logged to `access_logs` collection
+- [x] **Migration** — existing access control patterns → RBAC
+- [x] **SDK methods** — role/user-role CRUD
+- [x] **Tests** — RBAC enforcement, Security Rules, UI integration
+
+---
+
+## Current Milestone: Content Versioning ✅
+
+- [x] **Version schema + indexes** — subcollection under each entry/global
+- [x] **Pre-update snapshot hook** — save current state as new version before each update
+- [x] **Version list** — chronological with metadata (number, author, timestamp, summary)
+- [x] **Side-by-side diff** — compare any two versions
+- [x] **Single version view** — read-only view of a past version
+- [x] **Rollback** — save current as new version, restore target (reversible)
+- [x] **Pruning** — count-based (keep last N) + optional age-based TTL
+- [x] **Manual deletion** — remove specific versions
+- [x] **Admin UI: timeline view** — version history panel on entry detail page
+- [x] **Admin UI: diff view** — side-by-side comparison UI
+- [x] **Admin UI: rollback dialog** — confirmation with summary
+- [x] **Global versioning** — same mechanics for globals
+- [x] **SDK methods** — `versions.list()`, `versions.restore()`, `versions.delete()`
+- [x] **Tests** — snapshot, rollback, pruning, global versioning
+
+---
+
+## Current Milestone: Content Workflow ✅
+
+- [x] **Workflow state machine schema** — `workflowState` field on entries
+- [x] **Workflow config on collection schema** — states, transitions, required roles
+- [x] **Default states** — Draft → Review → Published; custom states in config
+- [x] **Transition logic** — validate transition is allowed per config
+- [x] **Reviewer assignment** — by specific user or by role
+- [x] **In-app notifications** — Firestore `notifications` collection listener
+- [x] **Audit log** — chronological transitions (from → to, user, timestamp, comment)
+- [x] **Admin UI: state indicator** — badge in entry header
+- [x] **Admin UI: transition buttons** — Submit for Review, Approve/Publish, Reject, Unpublish
+- [x] **Admin UI: reviewer selector** — assign reviewer on submission
+- [x] **Admin UI: history panel** — workflow timeline with comments
+- [x] **Security Rules** — enforce valid state transitions
+- [x] **SDK methods** — transition, assign, history queries
+- [x] **Tests** — state machine, enforcement, notifications, audit log
 
 ---
 
 ## Current Milestone: Shared Infrastructure
 
-- [ ] **Deploy Firestore indexes + Security Rules** for all new collections/specs
-- [ ] **Configuration schema entries** — per-capability config in schema system
-- [ ] **Feature flags** — enable/disable per capability
-- [ ] **Admin sidebar nav** — updated with new feature links
-- [ ] **TSDoc documentation** — all new APIs documented
-- [ ] **E2E tests** — critical paths for each new capability
-
----
-
-## Deferred (Architecture Conflict)
-
-- **Webhooks** — Requires server-side (Cloud Function or relay service). Outbound HTTP POST is impossible in client-only SPA.
-- **API Rate Limiting** — Not applicable. Firebase handles rate limiting natively; no app-level API gateway exists.
+- [x] **Deploy Firestore indexes + Security Rules** for all new collections/specs
+- [x] **Configuration schema entries** — per-capability config in schema system
+- [x] **Feature flags** — enable/disable per capability
+- [x] **Admin sidebar nav** — updated with new feature links
+- [x] **TSDoc documentation** — all new APIs documented
+- [x] **E2E tests** — critical paths for each new capability

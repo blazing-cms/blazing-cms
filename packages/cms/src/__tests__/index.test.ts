@@ -94,7 +94,19 @@ describe("main", () => {
   it("dispatches generate with --dir", async () => {
     setArgv("generate", "--dir", "my-schemas");
     await main();
-    expect(mockGenerate).toHaveBeenCalledWith({ dir: "my-schemas", type: "--dir" });
+    expect(mockGenerate).toHaveBeenCalledWith({ dir: "my-schemas", type: undefined });
+  });
+
+  it("dispatches generate with a positional type", async () => {
+    setArgv("generate", "sdk", "--dir", "my-schemas");
+    await main();
+    expect(mockGenerate).toHaveBeenCalledWith({ dir: "my-schemas", type: "sdk" });
+  });
+
+  it("ignores non-type flag values as the generate type", async () => {
+    setArgv("generate", "--dir", "registry");
+    await main();
+    expect(mockGenerate).toHaveBeenCalledWith({ dir: "registry", type: undefined });
   });
 
   it("dispatches deploy command", async () => {

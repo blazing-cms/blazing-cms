@@ -31,4 +31,7 @@ export default defineCollection({
   labels: { plural: "Posts", singular: "Post" },
   slug: "posts",
   timestamps: { createdAt: true, updatedAt: true },
+  workflow: {
+    reviewerRoles: ["role-editor"],
+  },
 });

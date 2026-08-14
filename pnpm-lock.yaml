@@ -189,6 +189,9 @@ importers:
       firebase:
         specifier: ^12.16.0
         version: 12.16.0
+      jiti:
+        specifier: ^2.7.0
+        version: 2.7.0
       lowlight:
         specifier: ^3.3.0
         version: 3.3.0
@@ -275,6 +278,10 @@ importers:
         version: 4.4.3
 
   packages/sdk:
+    dependencies:
+      '@blazing-cms/types':
+        specifier: workspace:*
+        version: link:../types
     devDependencies:
       firebase:
         specifier: ^12.16.0

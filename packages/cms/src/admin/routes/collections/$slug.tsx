@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDataProvider } from "@/lib/providers/context";
+import { usePermissions } from "@/lib/rbac";
 import { appLayoutRoute } from "@/routes/app-layout";
 
 export const collectionDetailRoute = createRoute({
@@ -18,7 +19,9 @@ export const collectionDetailRoute = createRoute({
 function CollectionEntries() {
   const { slug } = collectionDetailRoute.useParams();
   const provider = useDataProvider();
+  const { can } = usePermissions();
   const col = collections.find((c) => c.slug === slug);
+  const canCreate = can("create", slug);
 
   const { data: entries, isLoading } = useQuery({
     queryFn: async () => {
@@ -45,11 +48,13 @@ function CollectionEntries() {
           <h1 className="text-3xl font-bold">{col.labels?.singular ?? slug}</h1>
           <p className="text-muted-foreground text-sm">/{slug}</p>
         </div>
-        <Link to="/collections/new/$slug" params={{ slug }}>
-          <Button>
-            <Plus className="mr-1 h-4 w-4" /> New Entry
-          </Button>
-        </Link>
+        {canCreate ? (
+          <Link to="/collections/new/$slug" params={{ slug }}>
+            <Button>
+              <Plus className="mr-1 h-4 w-4" /> New Entry
+            </Button>
+          </Link>
+        ) : null}
       </div>
 
       {isLoading ? (

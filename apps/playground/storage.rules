@@ -1,0 +1,20 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /media/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.resource.size < 20 * 1024 * 1024
+        && (
+          request.resource.contentType.matches('image/(jpeg|png|webp|gif|svg\\+xml|avif)')
+          || request.resource.contentType.matches('video/(mp4|webm)')
+          || request.resource.contentType.matches('application/pdf')
+        );
+    }
+
+    // Deny everything else
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

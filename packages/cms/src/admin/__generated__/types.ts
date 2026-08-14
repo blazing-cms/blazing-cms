@@ -6,7 +6,6 @@ export interface ArrayEntry {
   updatedAt: string;
   title: string;
   field: string;
-  field3: string;
 }
 
 export interface BooleanEntry {
@@ -215,3 +214,4 @@ export interface Textarea {
 export interface Url {
   field: string;
 }
+

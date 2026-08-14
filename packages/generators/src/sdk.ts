@@ -18,13 +18,15 @@ export class SdkGenerator implements Generator {
   ): Promise<void> {
     mkdirSync(outDir, { recursive: true });
     let output = `// Auto-generated Blazing CMS SDK — do not edit\n\n`;
-    output += `import { createBlazeClient } from "@blazing-cms/sdk";\n\n`;
+    output += `import { createBlazeClient } from "@blazing-cms/sdk";\n`;
+    output += `import { capabilities } from "./app-config";\n\n`;
     output += `const client = createBlazeClient({\n`;
     output += `  apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? "",\n`;
     output += `  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? "",\n`;
     output += `  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? "",\n`;
     output += `  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ?? "",\n`;
     output += `  appId: import.meta.env.VITE_FIREBASE_APP_ID ?? "",\n`;
+    output += `  features: capabilities.features,\n`;
     output += `});\n\n`;
 
     for (const collection of collections) {

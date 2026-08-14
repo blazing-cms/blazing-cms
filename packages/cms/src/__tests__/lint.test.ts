@@ -1,13 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockLoad, mockValidateCollection } = vi.hoisted(() => ({
-  mockLoad: vi.fn(),
-  mockValidateCollection: vi.fn(),
-}));
+const { mockLoad, mockValidateCapabilities, mockValidateCollection, mockValidateGlobal } =
+  vi.hoisted(() => ({
+    mockLoad: vi.fn(),
+    mockValidateCapabilities: vi.fn(),
+    mockValidateCollection: vi.fn(),
+    mockValidateGlobal: vi.fn(),
+  }));
 
 vi.mock("@blazing-cms/schema", () => ({
   SchemaLoader: vi.fn(() => ({ load: mockLoad })),
-  SchemaValidator: vi.fn(() => ({ validateCollection: mockValidateCollection })),
+  SchemaValidator: vi.fn(() => ({
+    validateCapabilities: mockValidateCapabilities,
+    validateCollection: mockValidateCollection,
+    validateGlobal: mockValidateGlobal,
+  })),
 }));
 
 import { lint } from "../commands/lint.js";
@@ -15,6 +22,8 @@ import { lint } from "../commands/lint.js";
 describe("lint", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockValidateGlobal.mockReturnValue([]);
+    mockValidateCapabilities.mockReturnValue([]);
     vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
@@ -47,10 +56,12 @@ describe("lint", () => {
   it("handles empty collections", async () => {
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
     mockLoad.mockResolvedValue({ collections: [], components: [], globals: [] });
+    mockValidateCapabilities.mockReturnValue([]);
 
     await lint({});
 
     expect(mockValidateCollection).not.toHaveBeenCalled();
+    expect(mockValidateGlobal).not.toHaveBeenCalled();
     expect(exitSpy).toHaveBeenCalledWith(0);
   });
 });

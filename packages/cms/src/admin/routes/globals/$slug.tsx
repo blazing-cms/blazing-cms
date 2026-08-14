@@ -1,6 +1,8 @@
+import type { GlobalDefinition } from "@blazing-cms/types";
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createRoute, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, Save } from "lucide-react";
+import { createRoute, Link, useRouter } from "@tanstack/react-router";
+import { ArrowLeft, History, Save } from "lucide-react";
 import { useState, useEffect, type FormEvent } from "react";
 
 import { globals } from "@/__generated__/schema-registry";
@@ -8,6 +10,7 @@ import { FieldInput } from "@/components/field-input";
 import { useToast } from "@/components/toast-provider";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { globalFeatureEnabled } from "@/lib/features";
 import { useDataProvider } from "@/lib/providers/context";
 import { appLayoutRoute } from "@/routes/app-layout";
 
@@ -16,6 +19,14 @@ export const globalDetailRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: "/globals/$slug",
 });
+
+function globalLabel(globalDef: GlobalDefinition | undefined, slug: string): string {
+  return globalDef?.label ?? slug;
+}
+
+function saveButtonLabel(saving: boolean): string {
+  return saving ? "Saving..." : "Save";
+}
 
 function GlobalEditor() {
   const { slug } = globalDetailRoute.useParams();
@@ -54,7 +65,7 @@ function GlobalEditor() {
     }
   }
 
-  const label = globalDef?.label ?? slug;
+  const label = globalLabel(globalDef, slug);
 
   return (
     <div>
@@ -65,8 +76,22 @@ function GlobalEditor() {
         >
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
-        <h1 className="text-3xl font-bold">{label}</h1>
-        <p className="text-muted-foreground text-sm">/{slug}</p>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">{label}</h1>
+            <p className="text-muted-foreground text-sm">/{slug}</p>
+          </div>
+          {globalFeatureEnabled(slug, "versioning") && (
+            <Link
+              to={"/globals/$slug/revisions" as string}
+              params={{ slug } as Record<string, string>}
+            >
+              <Button type="button" variant="outline" size="sm">
+                <History className="mr-1 h-4 w-4" /> Version History
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       {isLoading ? (
@@ -87,7 +112,7 @@ function GlobalEditor() {
             />
           ))}
           <Button type="submit" disabled={saving}>
-            <Save className="mr-1 h-4 w-4" /> {saving ? "Saving..." : "Save"}
+            <Save className="mr-1 h-4 w-4" /> {saveButtonLabel(saving)}
           </Button>
         </form>
       )}

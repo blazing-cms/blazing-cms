@@ -1,117 +1,327 @@
-rules_version = 2;
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // RBAC helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function userGrants() {
+      return get(/databases/$(database)/documents/collections_user_roles/$(request.auth.uid)).data.grants;
+    }
+    function hasGrant(grant) {
+      return isSignedIn() && (grant in userGrants() || ("*:*" in userGrants()));
+    }
+    function hasSystem(flag) {
+      return hasGrant("system:" + flag);
+    }
+
+    // Workflow transition helpers
+    function validPostsWorkflow() {
+      return request.resource.data.workflowState == resource.data.workflowState || (resource.data.workflowState == "draft" && request.resource.data.workflowState == "review") || (resource.data.workflowState == "draft" && request.resource.data.workflowState == "published") || (resource.data.workflowState == "review" && request.resource.data.workflowState == "published") || (resource.data.workflowState == "review" && request.resource.data.workflowState == "rejected") || (resource.data.workflowState == "rejected" && request.resource.data.workflowState == "draft") || (resource.data.workflowState == "published" && request.resource.data.workflowState == "draft");
+    }
+
     // Per-collection content rules
     match /collections_array/{doc} {
-      allow read, write: if request.auth != null;
+      allow create: if hasGrant("collections:array:create") || hasGrant("collections:*:create");
+      allow read: if hasGrant("collections:array:read") || hasGrant("collections:*:read");
+      allow update: if hasGrant("collections:array:update") || hasGrant("collections:*:update");
+      allow delete: if hasGrant("collections:array:delete") || hasGrant("collections:*:delete");
+    }
+    match /collections_array/{doc}/versions/{version} {
+      allow read: if hasGrant("collections:array:read") || hasGrant("collections:*:read");
+      allow create, update, delete: if hasGrant("collections:array:update") || hasGrant("collections:*:update");
     }
     match /collections_boolean/{doc} {
-      allow read, write: if request.auth != null;
+      allow create: if hasGrant("collections:boolean:create") || hasGrant("collections:*:create");
+      allow read: if hasGrant("collections:boolean:read") || hasGrant("collections:*:read");
+      allow update: if hasGrant("collections:boolean:update") || hasGrant("collections:*:update");
+      allow delete: if hasGrant("collections:boolean:delete") || hasGrant("collections:*:delete");
+    }
+    match /collections_boolean/{doc}/versions/{version} {
+      allow read: if hasGrant("collections:boolean:read") || hasGrant("collections:*:read");
+      allow create, update, delete: if hasGrant("collections:boolean:update") || hasGrant("collections:*:update");
     }
     match /collections_component/{doc} {
-      allow read, write: if request.auth != null;
+      allow create: if hasGrant("collections:component:create") || hasGrant("collections:*:create");
+      allow read: if hasGrant("collections:component:read") || hasGrant("collections:*:read");
+      allow update: if hasGrant("collections:component:update") || hasGrant("collections:*:update");
+      allow delete: if hasGrant("collections:component:delete") || hasGrant("collections:*:delete");
+    }
+    match /collections_component/{doc}/versions/{version} {
+      allow read: if hasGrant("collections:component:read") || hasGrant("collections:*:read");
+      allow create, update, delete: if hasGrant("collections:component:update") || hasGrant("collections:*:update");
     }
     match /collections_date/{doc} {
-      allow read, write: if request.auth != null;
+      allow create: if hasGrant("collections:date:create") || hasGrant("collections:*:create");
+      allow read: if hasGrant("collections:date:read") || hasGrant("collections:*:read");
+      allow update: if hasGrant("collections:date:update") || hasGrant("collections:*:update");
+      allow delete: if hasGrant("collections:date:delete") || hasGrant("collections:*:delete");
     }
     match /collections_dynamic-zone/{doc} {
-      allow read, write: if request.auth != null;
+      allow create: if hasGrant("collections:dynamic-zone:create") || hasGrant("collections:*:create");
+      allow read: if hasGrant("collections:dynamic-zone:read") || hasGrant("collections:*:read");
+      allow update: if hasGrant("collections:dynamic-zone:update") || hasGrant("collections:*:update");
+      allow delete: if hasGrant("collections:dynamic-zone:delete") || hasGrant("collections:*:delete");
+    }
+    match /collections_dynamic-zone/{doc}/versions/{version} {
+      allow read: if hasGrant("collections:dynamic-zone:read") || hasGrant("collections:*:read");
+      allow create, update, delete: if hasGrant("collections:dynamic-zone:update") || hasGrant("collections:*:update");
     }
     match /collections_group/{doc} {
-      allow read, write: if request.auth != null;
+      allow create: if hasGrant("collections:group:create") || hasGrant("collections:*:create");
+      allow read: if hasGrant("collections:group:read") || hasGrant("collections:*:read");
+      allow update: if hasGrant("collections:group:update") || hasGrant("collections:*:update");
+      allow delete: if hasGrant("collections:group:delete") || hasGrant("collections:*:delete");
+    }
+    match /collections_group/{doc}/versions/{version} {
+      allow read: if hasGrant("collections:group:read") || hasGrant("collections:*:read");
+      allow create, update, delete: if hasGrant("collections:group:update") || hasGrant("collections:*:update");
     }
     match /collections_media-test/{doc} {
-      allow read, write: if request.auth != null;
+      allow create: if hasGrant("collections:media-test:create") || hasGrant("collections:*:create");
+      allow read: if hasGrant("collections:media-test:read") || hasGrant("collections:*:read");
+      allow update: if hasGrant("collections:media-test:update") || hasGrant("collections:*:update");
+      allow delete: if hasGrant("collections:media-test:delete") || hasGrant("collections:*:delete");
+    }
+    match /collections_media-test/{doc}/versions/{version} {
+      allow read: if hasGrant("collections:media-test:read") || hasGrant("collections:*:read");
+      allow create, update, delete: if hasGrant("collections:media-test:update") || hasGrant("collections:*:update");
     }
     match /collections_number/{doc} {
-      allow read, write: if request.auth != null;
+      allow create: if hasGrant("collections:number:create") || hasGrant("collections:*:create");
+      allow read: if hasGrant("collections:number:read") || hasGrant("collections:*:read");
+      allow update: if hasGrant("collections:number:update") || hasGrant("collections:*:update");
+      allow delete: if hasGrant("collections:number:delete") || hasGrant("collections:*:delete");
+    }
+    match /collections_number/{doc}/versions/{version} {
+      allow read: if hasGrant("collections:number:read") || hasGrant("collections:*:read");
+      allow create, update, delete: if hasGrant("collections:number:update") || hasGrant("collections:*:update");
     }
     match /collections_posts/{doc} {
-      allow read, write: if request.auth != null;
+      allow create: if (hasGrant("collections:posts:create") || hasGrant("collections:*:create")) && (request.resource.data.workflowState == null || request.resource.data.workflowState == "draft");
+      allow read: if hasGrant("collections:posts:read") || hasGrant("collections:*:read");
+      allow update: if (hasGrant("collections:posts:update") || hasGrant("collections:*:update")) && validPostsWorkflow();
+      allow delete: if hasGrant("collections:posts:delete") || hasGrant("collections:*:delete");
+    }
+    match /collections_posts/{doc}/versions/{version} {
+      allow read: if hasGrant("collections:posts:read") || hasGrant("collections:*:read");
+      allow create, update, delete: if hasGrant("collections:posts:update") || hasGrant("collections:*:update");
     }
     match /collections_relation/{doc} {
-      allow read, write: if request.auth != null;
+      allow create: if hasGrant("collections:relation:create") || hasGrant("collections:*:create");
+      allow read: if hasGrant("collections:relation:read") || hasGrant("collections:*:read");
+      allow update: if hasGrant("collections:relation:update") || hasGrant("collections:*:update");
+      allow delete: if hasGrant("collections:relation:delete") || hasGrant("collections:*:delete");
+    }
+    match /collections_relation/{doc}/versions/{version} {
+      allow read: if hasGrant("collections:relation:read") || hasGrant("collections:*:read");
+      allow create, update, delete: if hasGrant("collections:relation:update") || hasGrant("collections:*:update");
     }
     match /collections_repeater/{doc} {
-      allow read, write: if request.auth != null;
+      allow create: if hasGrant("collections:repeater:create") || hasGrant("collections:*:create");
+      allow read: if hasGrant("collections:repeater:read") || hasGrant("collections:*:read");
+      allow update: if hasGrant("collections:repeater:update") || hasGrant("collections:*:update");
+      allow delete: if hasGrant("collections:repeater:delete") || hasGrant("collections:*:delete");
+    }
+    match /collections_repeater/{doc}/versions/{version} {
+      allow read: if hasGrant("collections:repeater:read") || hasGrant("collections:*:read");
+      allow create, update, delete: if hasGrant("collections:repeater:update") || hasGrant("collections:*:update");
     }
     match /collections_rich-text/{doc} {
-      allow read, write: if request.auth != null;
+      allow create: if hasGrant("collections:rich-text:create") || hasGrant("collections:*:create");
+      allow read: if hasGrant("collections:rich-text:read") || hasGrant("collections:*:read");
+      allow update: if hasGrant("collections:rich-text:update") || hasGrant("collections:*:update");
+      allow delete: if hasGrant("collections:rich-text:delete") || hasGrant("collections:*:delete");
+    }
+    match /collections_rich-text/{doc}/versions/{version} {
+      allow read: if hasGrant("collections:rich-text:read") || hasGrant("collections:*:read");
+      allow create, update, delete: if hasGrant("collections:rich-text:update") || hasGrant("collections:*:update");
     }
     match /collections_select/{doc} {
-      allow read, write: if request.auth != null;
+      allow create: if hasGrant("collections:select:create") || hasGrant("collections:*:create");
+      allow read: if hasGrant("collections:select:read") || hasGrant("collections:*:read");
+      allow update: if hasGrant("collections:select:update") || hasGrant("collections:*:update");
+      allow delete: if hasGrant("collections:select:delete") || hasGrant("collections:*:delete");
+    }
+    match /collections_select/{doc}/versions/{version} {
+      allow read: if hasGrant("collections:select:read") || hasGrant("collections:*:read");
+      allow create, update, delete: if hasGrant("collections:select:update") || hasGrant("collections:*:update");
     }
     match /collections_text/{doc} {
-      allow read, write: if request.auth != null;
+      allow create: if hasGrant("collections:text:create") || hasGrant("collections:*:create");
+      allow read: if hasGrant("collections:text:read") || hasGrant("collections:*:read");
+      allow update: if hasGrant("collections:text:update") || hasGrant("collections:*:update");
+      allow delete: if hasGrant("collections:text:delete") || hasGrant("collections:*:delete");
+    }
+    match /collections_text/{doc}/versions/{version} {
+      allow read: if hasGrant("collections:text:read") || hasGrant("collections:*:read");
+      allow create, update, delete: if hasGrant("collections:text:update") || hasGrant("collections:*:update");
     }
 
     // Global content rules
     match /globals_boolean/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_boolean/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_checkbox/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_checkbox/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_code/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_code/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_color/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_color/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_date/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_date/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_datetime/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_datetime/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_email/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_email/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_homepage/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_homepage/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_json/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_json/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_markdown/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_markdown/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_media-settings/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_media-settings/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_multi-select/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_multi-select/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_number/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_number/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_password/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_password/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_radio/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_radio/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_rich-text/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_rich-text/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_select/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_select/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_site-settings/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_site-settings/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_slug/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_slug/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_text/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_text/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_textarea/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_textarea/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
     }
     match /globals_url/{doc} {
-      allow read, write: if request.auth != null;
+      allow read, write: if hasSystem("manageSettings");
+    }
+    match /globals_url/value/versions/{version} {
+      allow read, write: if hasSystem("manageSettings");
+    }
+
+    // RBAC platform collections
+    match /collections_roles/{doc} {
+      allow read, create, update, delete: if hasSystem("manageRoles");
+    }
+    match /collections_users/{doc} {
+      allow read, create, update, delete: if hasSystem("manageUsers");
+    }
+    match /collections_user_roles/{doc} {
+      allow read: if hasSystem("manageUsers") || hasSystem("manageRoles");
+      allow create, update: if hasSystem("manageUsers") || hasSystem("manageRoles") || (isSignedIn() && request.resource.data.userId == request.auth.uid && request.resource.data.roleIds.size() == 0);
+      allow delete: if hasSystem("manageUsers") || hasSystem("manageRoles");
+    }
+    match /collections_access_logs/{doc} {
+      allow create: if isSignedIn();
+      allow read: if hasSystem("manageUsers");
+      allow update, delete: if false;
+    }
+
+    // Media
+    match /media/{doc} {
+      allow read, create, update, delete: if hasSystem("manageMedia");
+    }
+
+    // Notifications
+    match /notifications/{doc} {
+      allow create: if isSignedIn();
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow delete: if hasSystem("manageUsers");
     }
 
     // Deny everything else

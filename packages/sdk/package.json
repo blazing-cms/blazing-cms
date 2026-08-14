@@ -27,5 +27,8 @@
   },
   "devDependencies": {
     "firebase": "^12.16.0"
+  },
+  "dependencies": {
+    "@blazing-cms/types": "workspace:*"
   }
 }

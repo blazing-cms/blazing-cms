@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import {
   LayoutDashboard,
+  BarChart3,
   FileText,
   Globe,
   Image,
@@ -20,6 +21,8 @@ import {
   globals as registryGlobals,
 } from "@/__generated__/schema-registry";
 import { isDevMode } from "@/lib/backend-mode";
+import { featureEnabled } from "@/lib/features";
+import { usePermissions } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -33,28 +36,51 @@ interface NavSection {
   items: NavItem[];
 }
 
-function navSections(): NavSection[] {
-  const collections = registryCollections.map((c) => ({
+function navSections(
+  can: (action: string, resource: string) => boolean,
+  canSystem: (action: string) => boolean,
+): NavSection[] {
+  const contentEnabled = featureEnabled("content");
+  const mediaEnabled = featureEnabled("media");
+  const analyticsEnabled = featureEnabled("analytics");
+  const rbacEnabled = featureEnabled("rbac");
+  const readableCollections = contentEnabled
+    ? registryCollections.filter((c) => can("read", c.slug))
+    : [];
+
+  const collections = readableCollections.map((c) => ({
     group: (c as { admin?: { group?: string } }).admin?.group ?? "Collections",
     href: `/collections/${c.slug}`,
     icon: FileText,
     label: (c as { labels?: { plural?: string; singular?: string } }).labels?.plural ?? c.slug,
   }));
 
-  const globals = registryGlobals.map((g) => ({
-    group: g.admin?.group ?? "Globals",
-    href: `/globals/${g.slug}`,
-    icon: Globe,
-    label: g.label ?? g.slug,
-  }));
+  const globals = contentEnabled
+    ? registryGlobals.map((g) => ({
+        group: g.admin?.group ?? "Globals",
+        href: `/globals/${g.slug}`,
+        icon: Globe,
+        label: g.label ?? g.slug,
+      }))
+    : [];
 
-  const contentItems: (NavItem & { group?: string })[] = [
-    { group: "Collections", href: "/collections", icon: FileText, label: "All Collections" },
-    ...collections,
-    { group: "Globals", href: "/globals", icon: Globe, label: "All Globals" },
-    ...globals,
-    { group: "Media", href: "/media", icon: Image, label: "Media" },
-  ];
+  const contentItems: (NavItem & { group?: string })[] = [];
+  if (readableCollections.length > 0) {
+    contentItems.push({
+      group: "Collections",
+      href: "/collections",
+      icon: FileText,
+      label: "All Collections",
+    });
+  }
+  contentItems.push(...collections);
+  if (contentEnabled) {
+    contentItems.push({ group: "Globals", href: "/globals", icon: Globe, label: "All Globals" });
+  }
+  contentItems.push(...globals);
+  if (mediaEnabled) {
+    contentItems.push({ group: "Media", href: "/media", icon: Image, label: "Media" });
+  }
 
   const groups = new Map<string, (NavItem & { group?: string })[]>();
   const ungrouped: (NavItem & { group?: string })[] = [];
@@ -79,14 +105,21 @@ function navSections(): NavSection[] {
 
   return [
     {
-      items: [{ href: "/", icon: LayoutDashboard, label: "Dashboard" }],
+      items: [
+        { href: "/", icon: LayoutDashboard, label: "Dashboard" },
+        ...(analyticsEnabled ? [{ href: "/analytics", icon: BarChart3, label: "Analytics" }] : []),
+      ],
       label: "Overview",
     },
     ...dynamicSections,
     {
       items: [
-        { href: "/users", icon: Users, label: "Users" },
-        { href: "/roles", icon: Shield, label: "Roles" },
+        ...(rbacEnabled && canSystem("manageUsers")
+          ? [{ href: "/users", icon: Users, label: "Users" }]
+          : []),
+        ...(rbacEnabled && canSystem("manageRoles")
+          ? [{ href: "/roles", icon: Shield, label: "Roles" }]
+          : []),
         ...(isDevMode() ? [{ href: "/schemas", icon: FileJson, label: "Schemas" }] : []),
         { href: "/settings", icon: Settings, label: "Settings" },
       ],
@@ -97,7 +130,8 @@ function navSections(): NavSection[] {
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const sections = navSections();
+  const { can, canSystem } = usePermissions();
+  const sections = navSections(can, canSystem);
 
   return (
     <aside

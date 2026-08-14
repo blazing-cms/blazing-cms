@@ -1,6 +1,7 @@
 // Auto-generated Blazing CMS SDK — do not edit
 
 import { createBlazeClient } from "@blazing-cms/sdk";
+import { capabilities } from "./app-config";
 
 const client = createBlazeClient({
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? "",
@@ -8,6 +9,7 @@ const client = createBlazeClient({
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? "",
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ?? "",
   appId: import.meta.env.VITE_FIREBASE_APP_ID ?? "",
+  features: capabilities.features,
 });
 
 export const array = {

@@ -2,9 +2,8 @@ import { z } from "zod";
 
 export const ArraySchema = z.object({
   id: z.string().optional(),
-  title: z.string().optional(),
+  title: z.string(),
   field: z.unknown().optional(),
-  field3: z.string().optional(),
 });
 
 export type ArrayInput = z.infer<typeof ArraySchema>;
@@ -118,3 +117,4 @@ export const TextSchema = z.object({
 });
 
 export type TextInput = z.infer<typeof TextSchema>;
+

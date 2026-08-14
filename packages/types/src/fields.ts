@@ -56,6 +56,14 @@ export interface FieldBase {
         readOnly?: boolean | undefined;
         order?: number | undefined;
         width?: string | undefined;
+        permissions?:
+          | {
+              /** Role ids allowed to read this field. Empty/omitted = everyone. */
+              read?: string[] | undefined;
+              /** Role ids allowed to edit this field. Empty/omitted = everyone. */
+              write?: string[] | undefined;
+            }
+          | undefined;
       }
     | undefined;
 }

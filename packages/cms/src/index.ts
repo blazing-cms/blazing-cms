@@ -1,6 +1,8 @@
 import { config } from "dotenv";
 config();
 
+import type { CapabilitiesConfig } from "@blazing-cms/types";
+
 export interface BlazeUserConfig {
   projectName?: string;
   firebase: {
@@ -10,6 +12,7 @@ export interface BlazeUserConfig {
     storageBucket?: string;
     appId?: string;
   };
+  capabilities?: CapabilitiesConfig;
 }
 
 export function defineConfig(config: BlazeUserConfig): BlazeUserConfig {
@@ -89,9 +92,14 @@ export async function main(): Promise<void> {
     }
     case "generate": {
       const m = await import("./commands/generate.js");
+      const typeNames = ["types", "validation", "sdk", "registry", "rules", "indexes"];
+      const positional = args
+        .slice(1)
+        .filter((a, i) => !a.startsWith("-") && args.slice(1)[i - 1] !== "--dir")
+        .find((a) => typeNames.includes(a));
       await m.generate({
         dir: getFlag(args, "--dir"),
-        type: args[1],
+        type: positional,
       });
       break;
     }

@@ -18,6 +18,8 @@ import {
 
 import type { CollectionApi, QueryOptions, PaginatedResult } from "./types.js";
 
+import { snapshotVersion } from "./versions.js";
+
 const PAGE_SIZE = 25;
 
 function docToData(d: DocumentSnapshot): Record<string, unknown> | null {
@@ -78,6 +80,7 @@ export function createCollectionApi(db: Firestore, collectionName: string): Coll
 
     async update(id: string, data: Record<string, unknown>): Promise<void> {
       const { id: _, ...updateData } = data;
+      await snapshotVersion(db, { collection: collectionName, id, kind: "entry" }, "Edited");
       await updateDoc(doc(db, collectionName, id), updateData);
     },
   };

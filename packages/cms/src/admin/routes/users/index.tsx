@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { createRoute, Link } from "@tanstack/react-router";
 import { Plus, Users as UsersIcon } from "lucide-react";
+import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDataProvider } from "@/lib/providers/context";
+import { usePermissions } from "@/lib/rbac";
 import { appLayoutRoute } from "@/routes/app-layout";
 
 export const usersIndexRoute = createRoute({
@@ -14,8 +16,27 @@ export const usersIndexRoute = createRoute({
   path: "/users",
 });
 
+function roleNamesByUser(
+  roles: Array<{ id: string; name: string }>,
+  userRoles: Array<Record<string, unknown>>,
+): Map<string, string[]> {
+  const namesById = new Map(roles.map((role) => [role.id, role.name]));
+  const result = new Map<string, string[]>();
+  for (const record of userRoles) {
+    const userId = record.userId as string | undefined;
+    if (!userId || !Array.isArray(record.roleIds)) continue;
+    const names = (record.roleIds as string[])
+      .map((roleId) => namesById.get(roleId))
+      .filter(Boolean) as string[];
+    if (names.length > 0) result.set(userId, names);
+  }
+  return result;
+}
+
 function UsersList() {
   const provider = useDataProvider();
+  const { canSystem } = usePermissions();
+  const canManage = canSystem("manageUsers");
 
   const { data: users, isLoading } = useQuery({
     queryFn: async () => {
@@ -25,15 +46,38 @@ function UsersList() {
     queryKey: ["users"],
   });
 
+  const { data: roles } = useQuery({
+    queryFn: async () => {
+      const result = await provider.findMany("roles", { limit: 100 });
+      return result.data;
+    },
+    queryKey: ["roles"],
+  });
+
+  const { data: userRoles } = useQuery({
+    queryFn: async () => {
+      const result = await provider.findMany("user_roles", { limit: 100 });
+      return result.data;
+    },
+    queryKey: ["user_roles"],
+  });
+
+  const namesByUser = useMemo(
+    () => roleNamesByUser((roles ?? []) as Array<{ id: string; name: string }>, userRoles ?? []),
+    [roles, userRoles],
+  );
+
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">Users</h1>
-        <Link to="/users/new">
-          <Button>
-            <Plus className="mr-1 h-4 w-4" /> New User
-          </Button>
-        </Link>
+        {canManage ? (
+          <Link to="/users/new">
+            <Button>
+              <Plus className="mr-1 h-4 w-4" /> New User
+            </Button>
+          </Link>
+        ) : null}
       </div>
 
       {isLoading ? (
@@ -46,6 +90,7 @@ function UsersList() {
         <div className="space-y-2">
           {users.map((user) => {
             const id = user.id as string;
+            const names = namesByUser.get(id) ?? [];
             return (
               <Link key={id} to="/users/$id" params={{ id }}>
                 <Card className="cursor-pointer transition-colors hover:bg-accent">
@@ -59,11 +104,16 @@ function UsersList() {
                         <p className="text-sm text-muted-foreground">{String(user.email)}</p>
                       ) : null}
                     </div>
-                    {user.role ? (
-                      <span className="rounded-full bg-secondary px-2 py-0.5 text-xs">
-                        {String(user.role)}
-                      </span>
-                    ) : null}
+                    <div className="flex gap-1">
+                      {names.map((roleName) => (
+                        <span
+                          key={roleName}
+                          className="rounded-full bg-secondary px-2 py-0.5 text-xs"
+                        >
+                          {roleName}
+                        </span>
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
               </Link>

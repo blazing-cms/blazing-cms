@@ -1,14 +1,20 @@
+import type { CollectionDefinition } from "@blazing-cms/types";
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createRoute, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, Save } from "lucide-react";
+import { createRoute, Link, useRouter } from "@tanstack/react-router";
+import { ArrowLeft, History, Save } from "lucide-react";
 import { useState, useEffect, type FormEvent } from "react";
 
 import { collections } from "@/__generated__/schema-registry";
+import { DeniedNotice } from "@/components/denied-notice";
 import { FieldInput } from "@/components/field-input";
 import { useToast } from "@/components/toast-provider";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { WorkflowPanel } from "@/components/workflow-panel";
+import { collectionFeatureEnabled } from "@/lib/features";
 import { useDataProvider } from "@/lib/providers/context";
+import { usePermissions } from "@/lib/rbac";
 import { appLayoutRoute } from "@/routes/app-layout";
 
 export const editEntryRoute = createRoute({
@@ -17,15 +23,26 @@ export const editEntryRoute = createRoute({
   path: "/collections/$slug/$id",
 });
 
+function entryLabel(col: CollectionDefinition | undefined, slug: string): string {
+  return col?.labels?.singular ?? slug;
+}
+
+function saveButtonLabel(saving: boolean): string {
+  return saving ? "Saving..." : "Save";
+}
+
 function EditEntry() {
   const { id, slug } = editEntryRoute.useParams();
   const router = useRouter();
   const provider = useDataProvider();
   const { addToast } = useToast();
   const queryClient = useQueryClient();
+  const { can } = usePermissions();
   const col = collections.find((c) => c.slug === slug);
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [saving, setSaving] = useState(false);
+
+  const canUpdate = can("update", slug);
 
   const { data: entry, isLoading } = useQuery({
     queryFn: async () => provider.findOne(slug, id),
@@ -50,7 +67,13 @@ function EditEntry() {
     }
   }
 
-  const label = col?.labels?.singular ?? slug;
+  const label = entryLabel(col, slug);
+  const versioningEnabled = collectionFeatureEnabled(slug, "versioning");
+  const workflowEnabled = collectionFeatureEnabled(slug, "workflow");
+
+  if (!canUpdate) {
+    return <DeniedNotice action="update" resource={slug} />;
+  }
 
   return (
     <div>
@@ -61,8 +84,22 @@ function EditEntry() {
         >
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
-        <h1 className="text-3xl font-bold">Edit {label}</h1>
-        <p className="text-muted-foreground text-sm">ID: {id}</p>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">Edit {label}</h1>
+            <p className="text-muted-foreground text-sm">ID: {id}</p>
+          </div>
+          {versioningEnabled && (
+            <Link
+              to={"/collections/$slug/$id/revisions" as string}
+              params={{ id, slug } as Record<string, string>}
+            >
+              <Button type="button" variant="outline" size="sm">
+                <History className="mr-1 h-4 w-4" /> Version History
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       {isLoading ? (
@@ -83,9 +120,12 @@ function EditEntry() {
             />
           ))}
           <Button type="submit" disabled={saving}>
-            <Save className="mr-1 h-4 w-4" /> {saving ? "Saving..." : "Save"}
+            <Save className="mr-1 h-4 w-4" /> {saveButtonLabel(saving)}
           </Button>
         </form>
+      )}
+      {col && entry && workflowEnabled && (
+        <WorkflowPanel col={col} entry={entry} id={id} slug={slug} />
       )}
     </div>
   );
