@@ -2,7 +2,7 @@
 
 Blazing CMS currently provides core primitives for headless content management, but several platform-grade features are missing. Adding these capabilities — implemented entirely through the Firebase client SDK and Firestore — will make the CMS production-ready for a wider range of use cases.
 
-**Architecture constraint:** Client-side only — no backend server, no custom REST API layer, no Cloud Functions. All data access goes through the Firebase client SDK directly to Firestore. Security Rules are the definitive enforcement layer. Specs that depend on server-side dispatch (webhooks, rate limiting) are flagged accordingly.
+**Architecture constraint:** Client-side only — no backend server, no custom REST API layer, no Cloud Functions. All data access goes through the Firebase client SDK directly to Firestore. Security Rules are the definitive enforcement layer. Specs that depend on server-side dispatch (rate limiting) are flagged accordingly.
 
 ## What Changes
 

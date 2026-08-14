@@ -69,7 +69,7 @@ All new capabilities use Firestore collection-per-entity and subcollection patte
 - Current state stored on each entry as `workflowState` field
 - State machine enforced in the admin UI before write operations
 - Firestore Security Rules check `workflowState` transitions
-- Notifications: in-app via Firestore listener (no email/webhook server)
+- Notifications: in-app via Firestore listener (no email server)
 
 ## Risks / Trade-offs
 

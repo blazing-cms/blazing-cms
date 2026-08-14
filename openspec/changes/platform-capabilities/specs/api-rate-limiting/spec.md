@@ -40,7 +40,7 @@ The system SHALL allow configuring different rate limits for different route gro
 
 #### Scenario: Specific routes can be exempted
 
-- **WHEN** a route is added to `rateLimit.exemptRoutes` (e.g., webhook receiver URLs)
+- **WHEN** a route is added to `rateLimit.exemptRoutes` (e.g., an image transformation endpoint)
 - **THEN** that route does not count toward rate limits
 
 ### Requirement: Rate limit state is stored persistently
