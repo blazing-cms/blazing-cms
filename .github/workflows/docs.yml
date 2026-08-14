@@ -36,6 +36,10 @@ jobs:
         working-directory: apps/docs
         run: pnpm docs:build
 
+      - name: Generate CNAME file
+        run: |
+          echo "blazing-cms.js.org" > apps/docs/.vitepress/dist/CNAME
+
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
