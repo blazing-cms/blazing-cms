@@ -28,55 +28,51 @@
 - [x] 2.10 Add SDK methods for role and permission queries
 - [x] 2.11 Write tests for RBAC context, Security Rules, and integration
 
-## 3. API Rate Limiting ❌ NOT APPLICABLE (CLIENT-SIDE ONLY)
+## 3. Content Versioning
 
-> **CONFLICT with client-side-only architecture:** Rate limiting is a server-side concept that requires a centralized request gateway. In a client-side-only app where all data access goes directly through the Firebase client SDK to Firestore, there is no application-level API to rate-limit. Firestore itself has built-in rate limiting and quota enforcement via the Firebase platform. This capability should be removed from the roadmap unless a server-side layer is introduced later.
+- [x] 3.1 Define version schema and Firestore subcollection indexes in types
+- [x] 3.2 Implement pre-update snapshot hook — client reads current doc state and writes version to subcollection before each update
+- [x] 3.3 Implement version list via Firestore subcollection query
+- [x] 3.4 Implement rollback — write current state as new version, then restore target version's data
+- [x] 3.5 Implement version pruning — client-side on write (retain last N versions); support Firestore TTL policies for age-based pruning
+- [x] 3.6 Build admin UI: version history panel with timeline view
+- [x] 3.7 Build admin UI: diff view between versions (side-by-side)
+- [x] 3.8 Build admin UI: rollback with confirmation dialog
+- [x] 3.9 Extend versioning to globals
+- [x] 3.10 Add SDK methods for version operations
+- [x] 3.11 Write tests for version snapshots, rollback, pruning
 
-## 4. Content Versioning
+## 4. Admin Analytics
 
-- [x] 4.1 Define version schema and Firestore subcollection indexes in types
-- [x] 4.2 Implement pre-update snapshot hook — client reads current doc state and writes version to subcollection before each update
-- [x] 4.3 Implement version list via Firestore subcollection query
-- [x] 4.4 Implement rollback — write current state as new version, then restore target version's data
-- [x] 4.5 Implement version pruning — client-side on write (retain last N versions); support Firestore TTL policies for age-based pruning
-- [x] 4.6 Build admin UI: version history panel with timeline view
-- [x] 4.7 Build admin UI: diff view between versions (side-by-side)
-- [x] 4.8 Build admin UI: rollback with confirmation dialog
-- [x] 4.9 Extend versioning to globals
-- [x] 4.10 Add SDK methods for version operations
-- [x] 4.11 Write tests for version snapshots, rollback, pruning
+- [x] 4.1 Implement content statistics via Firestore `getCountFromServer` aggregation queries
+- [x] 4.2 Implement storage usage summary (sum `size` field from `media` collection documents)
+- [x] 4.3 Implement user activity tracking (query `createdBy`/`updatedBy` fields across collections)
+- [x] 4.4 Data retention/pruning — N/A, analytics is derived live from existing documents (no collected data to prune)
+- [x] 4.5 Build admin UI: dashboard widgets (content counts, charts, storage usage)
+- [x] 4.6 Build admin UI: analytics page with time period selector
+- [x] 4.7 Add SDK methods for analytics queries
+- [x] 4.8 Write tests for analytics queries and data derivation
 
-## 5. Admin Analytics
+## 5. Content Workflow
 
-- [x] 5.1 Implement content statistics via Firestore `getCountFromServer` aggregation queries
-- [x] 5.2 Implement storage usage summary (sum `size` field from `media` collection documents)
-- [x] 5.3 Implement user activity tracking (query `createdBy`/`updatedBy` fields across collections)
-- [x] 5.4 Data retention/pruning — N/A, analytics is derived live from existing documents (no collected data to prune)
-- [x] 5.5 Build admin UI: dashboard widgets (content counts, charts, storage usage)
-- [x] 5.6 Build admin UI: analytics page with time period selector
-- [x] 5.7 Add SDK methods for analytics queries
-- [x] 5.8 Write tests for analytics queries and data derivation
+- [x] 5.1 Define workflow state machine schema and entry `workflowState` field in types
+- [x] 5.2 Implement workflow config on collection schema (states, transitions, role requirements)
+- [x] 5.3 Enforce workflow state transitions in the admin UI before write operations; rely on Firestore Security Rules for server-side enforcement
+- [x] 5.4 Implement workflow transition logic (client-side state validation + Firestore write)
+- [x] 5.5 Implement reviewer assignment (by user, by role) in Firestore
+- [x] 5.6 Implement in-app notifications via Firestore listener (no email/server)
+- [x] 5.7 Implement workflow audit log in Firestore subcollection
+- [x] 5.8 Build admin UI: workflow state indicator and transition buttons in entry header
+- [x] 5.9 Build admin UI: reviewer assignment selector
+- [x] 5.10 Build admin UI: workflow history panel
+- [x] 5.11 Add SDK methods for workflow operations
+- [x] 5.12 Write tests for workflow transitions, permissions, and rollback
 
-## 6. Content Workflow
+## 6. Shared Infrastructure
 
-- [x] 6.1 Define workflow state machine schema and entry `workflowState` field in types
-- [x] 6.2 Implement workflow config on collection schema (states, transitions, role requirements)
-- [x] 6.3 Enforce workflow state transitions in the admin UI before write operations; rely on Firestore Security Rules for server-side enforcement
-- [x] 6.4 Implement workflow transition logic (client-side state validation + Firestore write)
-- [x] 6.5 Implement reviewer assignment (by user, by role) in Firestore
-- [x] 6.6 Implement in-app notifications via Firestore listener (no email/server)
-- [x] 6.7 Implement workflow audit log in Firestore subcollection
-- [x] 6.8 Build admin UI: workflow state indicator and transition buttons in entry header
-- [x] 6.9 Build admin UI: reviewer assignment selector
-- [x] 6.10 Build admin UI: workflow history panel
-- [x] 6.11 Add SDK methods for workflow operations
-- [x] 6.12 Write tests for workflow transitions, permissions, and rollback
-
-## 7. Shared Infrastructure
-
-- [x] 7.1 Deploy Firestore indexes and Security Rules for all new collections
-- [x] 7.2 Add configuration schema entries for all capabilities (defaults + overrides)
-- [x] 7.3 Update admin sidebar navigation with new feature links
-- [x] 7.4 Add feature flags for each capability (enable/disable via config)
-- [x] 7.5 Update TSDoc documentation across new packages and routes
-- [x] 7.6 Create e2e tests for critical paths across capabilities
+- [x] 6.1 Deploy Firestore indexes and Security Rules for all new collections
+- [x] 6.2 Add configuration schema entries for all capabilities (defaults + overrides)
+- [x] 6.3 Update admin sidebar navigation with new feature links
+- [x] 6.4 Add feature flags for each capability (enable/disable via config)
+- [x] 6.5 Update TSDoc documentation across new packages and routes
+- [x] 6.6 Create e2e tests for critical paths across capabilities
