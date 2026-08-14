@@ -8,7 +8,7 @@ Provides dashboard widgets and analytics data to help admins understand content 
 
 ### Requirement: Dashboard shows content statistics
 
-The system SHALL display content counts and metrics on the admin dashboard using Firestore aggregation queries.
+The system SHALL display content counts and metrics on the admin dashboard using Firestore `getCountFromServer` aggregation queries.
 
 #### Scenario: Total content counts
 
@@ -32,7 +32,7 @@ The system SHALL display storage consumption metrics for media assets, derived f
 #### Scenario: Total storage used
 
 - **WHEN** an admin views analytics
-- **THEN** total storage used by media assets is displayed
+- **THEN** total storage used by media assets is displayed (sum of `size` fields from `media` documents)
 
 #### Scenario: Storage by file type
 
@@ -46,7 +46,7 @@ The system SHALL display user engagement metrics derived from document authorshi
 #### Scenario: Active users
 
 - **WHEN** an admin views analytics
-- **THEN** the number of active users in the selected period is displayed
+- **THEN** the number of active users in the selected period is displayed (distinct `createdBy`/`updatedBy` values)
 
 #### Scenario: Top contributors
 
