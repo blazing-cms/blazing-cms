@@ -41,7 +41,8 @@ import { defineCollection, text } from "@blazing-cms/schema";
 
 ## @blazing-cms/sdk
 
-Browser SDK for consuming CMS content directly from Firestore.
+Browser SDK for consuming CMS content directly from Firestore, including the
+capability APIs.
 
 ```ts
 import { createBlazeClient } from "@blazing-cms/sdk";
@@ -57,4 +58,26 @@ const post = await client.collection("posts").findById("abc123");
 
 // Access globals
 const settings = await client.globals.get("site-settings");
+
+// Auth, analytics, media, rbac, versions, workflow, notifications
+await client.auth.login("admin@example.com", "password");
+const summary = await client.analytics.getSummary({ period: "30d" });
+const assets = await client.media.list({ folder: "banners" });
+const roles = await client.rbac.listRoles();
+const versions = await client.versions.list({ kind: "entry", collection: "posts", id: post.id });
+await client.workflow.transition("posts", post.id, "review");
+const inbox = await client.notifications.list();
 ```
+
+See the [SDK Reference](/reference/sdk) for the full API.
+
+## @blazing-cms/types
+
+Shared TypeScript types: schema definitions (collections, globals, components,
+fields, workflow config) and capability configuration.
+
+## @blazing-cms/create-app
+
+Project scaffolding CLI (`@blazing-cms/create-app <project-name>`) that creates a
+project with Firebase config, example collections and globals, and
+build/dev/deploy scripts.

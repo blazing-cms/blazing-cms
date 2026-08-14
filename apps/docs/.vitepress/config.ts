@@ -4,37 +4,44 @@ const isDev = process.env.NODE_ENV === "development";
 
 export default defineConfig({
   base: isDev ? "/" : "/blazing-cms/",
-  title: "Blazing CMS",
   description: "Schema-defined CMS for Firebase",
   themeConfig: {
     logo: false,
     nav: [
-      { text: "Guide", link: "/guide/getting-started" },
-      { text: "Reference", link: "/reference/packages" },
+      { link: "/guide/getting-started", text: "Guide" },
+      { link: "/reference/packages", text: "Reference" },
     ],
     sidebar: {
       "/guide/": [
         {
-          text: "Guide",
           items: [
-            { text: "Getting Started", link: "/guide/getting-started" },
-            { text: "Defining Schemas", link: "/guide/schemas" },
-            { text: "Admin Panel", link: "/guide/admin" },
+            { link: "/guide/getting-started", text: "Getting Started" },
+            { link: "/guide/schemas", text: "Defining Schemas" },
+            { link: "/guide/admin", text: "Admin Panel" },
+            { link: "/guide/media", text: "Media Library" },
+            { link: "/guide/rbac", text: "RBAC" },
+            { link: "/guide/versioning", text: "Content Versioning" },
+            { link: "/guide/workflow", text: "Content Workflow" },
+            { link: "/guide/analytics", text: "Analytics" },
+            { link: "/guide/deployment", text: "Deployment" },
           ],
+          text: "Guide",
         },
       ],
       "/reference/": [
         {
-          text: "Reference",
           items: [
-            { text: "Packages", link: "/reference/packages" },
-            { text: "CLI", link: "/reference/cli" },
+            { link: "/reference/packages", text: "Packages" },
+            { link: "/reference/cli", text: "CLI" },
+            { link: "/reference/sdk", text: "SDK" },
+            { link: "/reference/configuration", text: "Configuration" },
+            { link: "/reference/security", text: "Security" },
           ],
+          text: "Reference",
         },
       ],
     },
-    socialLinks: [
-      { icon: "github", link: "https://github.com/blazing-cms/blazing-cms" },
-    ],
+    socialLinks: [{ icon: "github", link: "https://github.com/blazing-cms/blazing-cms" }],
   },
+  title: "Blazing CMS",
 });
