@@ -10,15 +10,13 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,18 +38,11 @@ jobs:
         run: |
           echo "blazing-cms.js.org" > apps/docs/.vitepress/dist/CNAME
 
-      - uses: actions/configure-pages@v5
-
-      - uses: actions/upload-pages-artifact@v3
+      - name: Deploy to blazing-cms.github.io
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: apps/docs/.vitepress/dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          personal_token: ${{ secrets.PAGES_DEPLOY_TOKEN }}
+          external_repository: blazing-cms/blazing-cms.github.io
+          publish_branch: main
+          publish_dir: apps/docs/.vitepress/dist
+          force_orphan: true
