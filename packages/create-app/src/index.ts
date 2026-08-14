@@ -1,6 +1,9 @@
-import { mkdirSync, writeFileSync, existsSync } from "node:fs";
+/* eslint-disable no-secrets/no-secrets -- generated templates use placeholder env var names, not real secrets */
+import { mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createInterface } from "node:readline";
+
+const AGENTS_PATH = new URL("../AGENTS.md", import.meta.url);
 
 function createFile(dir: string, name: string, content: string) {
   writeFileSync(resolve(dir, name), content.trimStart());
@@ -25,7 +28,7 @@ export async function scaffold(projectName: string): Promise<void> {
     process.exit(1);
   }
 
-  const displayName = await makePrompt(`Project display name (${projectName}): `) || projectName;
+  const displayName = (await makePrompt(`Project display name (${projectName}): `)) || projectName;
 
   console.warn(`\n  Creating Blazing CMS project: ${displayName}\n`);
 
@@ -35,7 +38,10 @@ export async function scaffold(projectName: string): Promise<void> {
   mkdirSync(resolve(dir, "src"), { recursive: true });
 
   // package.json
-  createFile(dir, "package.json", `
+  createFile(
+    dir,
+    "package.json",
+    `
 {
   "name": "${projectName}",
   "private": true,
@@ -55,10 +61,14 @@ export async function scaffold(projectName: string): Promise<void> {
     "typescript": "^5"
   }
 }
-`);
+`,
+  );
 
   // tsconfig.json
-  createFile(dir, "tsconfig.json", `
+  createFile(
+    dir,
+    "tsconfig.json",
+    `
 {
   "compilerOptions": {
     "target": "ES2023",
@@ -70,10 +80,14 @@ export async function scaffold(projectName: string): Promise<void> {
   },
   "include": ["cms"]
 }
-`);
+`,
+  );
 
   // blazing-cms.config.ts
-  createFile(dir, "blazing-cms.config.ts", `
+  createFile(
+    dir,
+    "blazing-cms.config.ts",
+    `
 import { defineConfig } from "@blazing-cms/cms";
 
 export default defineConfig({
@@ -86,20 +100,28 @@ export default defineConfig({
     appId: process.env.VITE_FIREBASE_APP_ID ?? "",
   },
 });
-`);
+`,
+  );
 
   // .env
-  createFile(dir, ".env", `
+  createFile(
+    dir,
+    ".env",
+    `
 VITE_FIREBASE_PROJECT_ID=your-project-id
 VITE_FIREBASE_API_KEY=your-api-key
 VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
 VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
 VITE_FIREBASE_APP_ID=your-app-id
 VITE_BACKEND_MODE=firebase
-`);
+`,
+  );
 
   // .env.example
-  createFile(dir, ".env.example", `
+  createFile(
+    dir,
+    ".env.example",
+    `
 # Firebase Configuration
 VITE_FIREBASE_API_KEY=
 VITE_FIREBASE_AUTH_DOMAIN=
@@ -109,18 +131,26 @@ VITE_FIREBASE_APP_ID=
 
 # Backend mode: "firebase" (default) or "mock"
 VITE_BACKEND_MODE=firebase
-`);
+`,
+  );
 
   // .gitignore
-  createFile(dir, ".gitignore", `
+  createFile(
+    dir,
+    ".gitignore",
+    `
 node_modules/
 dist/
 .env
 firebase-debug.log
-`);
+`,
+  );
 
   // Example collection
-  createFile(dir, "cms/collections/posts.ts", `
+  createFile(
+    dir,
+    "cms/collections/posts.ts",
+    `
 import { defineCollection, text, slug, richText, status } from "@blazing-cms/schema";
 
 export default defineCollection({
@@ -137,10 +167,14 @@ export default defineCollection({
     status(),
   ],
 });
-`);
+`,
+  );
 
   // Example global
-  createFile(dir, "cms/globals/site-settings.ts", `
+  createFile(
+    dir,
+    "cms/globals/site-settings.ts",
+    `
 import { defineGlobal, text, image } from "@blazing-cms/schema";
 
 export default defineGlobal({
@@ -151,7 +185,11 @@ export default defineGlobal({
     image("logo"),
   ],
 });
-`);
+`,
+  );
+
+  // AGENTS.md — agent documentation for the generated project
+  createFile(dir, "AGENTS.md", readFileSync(AGENTS_PATH, "utf-8"));
 
   console.warn(`\n  Project "${projectName}" created!\n`);
   console.warn("  Next steps:");

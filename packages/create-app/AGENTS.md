@@ -1,99 +1,71 @@
-# AGENTS.md — `@blazing-cms/create-app`
+# AGENTS.md — Blazing CMS Project
 
-Agent-oriented documentation for the project scaffolding CLI. Read this before
-editing anything in `packages/create-app/`.
+Agent-oriented documentation for this generated Blazing CMS project. Read this
+before editing anything in the repo.
 
-## What this package is
+## What this project is
 
-`@blazing-cms/create-app` (v0.1.1) is the bootstrap CLI that creates a new
-Blazing CMS project. It is a single-purpose package: one `scaffold()` function
-plus a thin `bin/` wrapper. There is no admin UI, no SDK, and no Firebase code
-here — only template files written to disk.
+A schema-defined CMS project for Firebase. The content model is defined in
+TypeScript files; the `blaze` CLI generates the admin panel, a typed SDK,
+validation, Firestore security rules, and indexes from them. The backend is
+Firebase (Firestore, Auth, Storage) accessed entirely from the client — there is
+no server code in this project.
 
-## Identity and invocation
-
-- Package name: `@blazing-cms/create-app`
-- Bin entry: `bin/create-blazing-cms-app.js` (invoked as
-  `npx @blazing-cms/create-app <project-name>`)
-- Main entry: `dist/index.js` (compiled from `src/index.ts` by `tsc`)
-- The bin prints usage and exits when invoked with no args or `--help`
-
-## Source layout
+## Project layout
 
 ```
-packages/create-app/
-  bin/create-blazing-cms-app.js   # argv parsing; calls scaffold(projectName)
-  src/index.ts                    # the entire implementation
-  src/__tests__/
-    index.test.ts                 # scaffold tests
-    scaffold.test.ts              # scaffold tests
-  dist/                           # compiled output (build artifacts, do not edit)
+.
+  blazing-cms.config.ts     # Project name + Firebase config + capabilities
+  cms/
+    collections/            # Content-type schemas (one .ts file per collection)
+    globals/                # Singleton content schemas (site settings, etc.)
+    components/             # Reusable field-group schemas
+  src/                      # App code (unused unless you add custom UI)
+  .env                      # Local Firebase credentials (gitignored)
+  .env.example              # Documented env template
 ```
 
-## How `scaffold()` works (`src/index.ts`)
+## Schema files are the source of truth
 
-- Resolves `<projectName>` under `process.cwd()` and **exits with code 1** if the
-  directory already exists (`existsSync`).
-- Prompts for a display name via `makePrompt()` (readline); empty input falls
-  back to the project name.
-- Creates `cms/collections`, `cms/globals`, and `src` directories with
-  `mkdirSync(..., { recursive: true })`.
-- Writes every file through the `createFile(dir, name, content)` helper, which
-  writes the content with `.trimStart()` and logs `✓ Created <name>` via
-  `console.warn`.
+- Collections define content types with multiple entries; globals define
+  singletons; components are reusable field groups.
+- Field types and validation come from `@blazing-cms/schema` builders:
+  `text`, `textarea`, `richText`, `markdown`, `code`, `number`, `boolean`,
+  `date`, `datetime`, `email`, `url`, `select`, `relation`, `media`, `upload`,
+  `component`, `dynamicZone`, `array`, `object`, `slug`, and more.
+- Use `validation: { required: true }` for required fields (not a top-level
+  `required` key) and `slug("slug", { source: "title" })` for slug fields.
+- The CLI regenerates types, the SDK, validation, Firestore rules, and indexes
+  from these files — edit the schema files, never the generated output.
 
-Files written:
-
-| File                           | Purpose                                                                                                               |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| `package.json`                 | `dev`/`build`/`deploy`/`generate`/`scaffold` scripts calling `blaze`; deps `@blazing-cms/cms` (latest) and `firebase` |
-| `tsconfig.json`                | Strict, ESNext, `noEmit`, includes `cms`                                                                              |
-| `blazing-cms.config.ts`        | `defineConfig` reading Firebase values from `process.env.VITE_FIREBASE_*`                                             |
-| `.env`                         | `VITE_FIREBASE_*` placeholders, `VITE_BACKEND_MODE=firebase`                                                          |
-| `.env.example`                 | Documented placeholder env vars                                                                                       |
-| `.gitignore`                   | `node_modules/`, `dist/`, `.env`, `firebase-debug.log`                                                                |
-| `cms/collections/posts.ts`     | Example collection template                                                                                           |
-| `cms/globals/site-settings.ts` | Example global template                                                                                               |
-
-## Development workflow
-
-All commands run from the repo root:
+## Commands
 
 ```bash
-pnpm --filter @blazing-cms/create-app build       # tsc -> dist/
-pnpm --filter @blazing-cms/create-app dev         # tsc --watch
-pnpm --filter @blazing-cms/create-app test        # vitest run
-pnpm --filter @blazing-cms/create-app typecheck   # tsc --noEmit
-pnpm --filter @blazing-cms/create-app lint        # tsc --noEmit
+pnpm dev           # Start the dev server + admin panel
+pnpm build         # Build the admin panel for production
+pnpm generate      # Regenerate types, SDK, validation, rules, indexes
+pnpm scaffold      # Scaffold a new collection/global/component
+pnpm deploy        # Deploy the admin panel to Firebase Hosting
 ```
 
-## Testing conventions
+`blaze dev` and `blaze generate` also sync schema definitions to Firestore under
+`_schemas/` so the admin panel can introspect them at runtime.
 
-- Vitest; tests live in `src/__tests__/`.
-- `node:fs` and `node:readline` are mocked via `vi.mock` — `existsSync`,
-  `mkdirSync`, and `writeFileSync` never touch the real filesystem, and the
-  display-name prompt auto-answers `"My Project"`.
-- Tests assert on the args of `writeFileSync` calls (file paths + content
-  substrings), so template changes are covered by `scaffold.test.ts` /
-  `index.test.ts`. Update those assertions when changing templates.
-- Never run the real scaffolder against a working directory you care about —
-  it writes files relative to `process.cwd()`.
+## Configuration
 
-## Gotchas
+Firebase credentials are set via environment variables (`.env`):
 
-- **The example schema templates are out of date with `@blazing-cms/schema`.**
-  `cms/collections/posts.ts` uses `text("title", { required: true })`,
-  `slug("slug", { sourceField: "title" })`, and `status()`; the global uses
-  `image("logo")`. The current DSL (see `packages/schema/src/fields.ts`) uses
-  `validation: { required: true }`, `slug("slug", { source: "title" })`, and
-  `media(...)` / `upload(...)` builders — there is **no** `status()` or
-  `image()` builder. Treat the templates as known-drift, not as authoritative
-  examples. Fixing them is a separate schema-DSL-sync change; do not bundle it
-  into unrelated work without being asked.
-- Templates are template-literal strings; `createFile` applies `.trimStart()`,
-  so leading blank lines in a template literal are stripped. Keep template
-  indentation intentional.
-- User-facing output goes through `console.warn`, not `console.log` — match
-  that style.
-- The bin imports `../dist/index.js` (compiled output), so always run
-  `build` before manually testing the CLI locally.
+- `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_API_KEY`,
+  `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_STORAGE_BUCKET`,
+  `VITE_FIREBASE_APP_ID`
+- `VITE_BACKEND_MODE` — `firebase` (live backend) or `mock` (in-memory, for
+  local development without a Firebase project)
+
+The project id and credentials are also mirrored in `blazing-cms.config.ts`.
+
+## Next steps
+
+- Copy `.env.example` to `.env` and fill in your Firebase config, then run
+  `pnpm dev` and open the admin panel at `http://localhost:5173/`.
+- Add collections under `cms/collections/` and globals under `cms/globals/`.
+- Full schema, admin, and capability docs live in the Blazing CMS docs site.

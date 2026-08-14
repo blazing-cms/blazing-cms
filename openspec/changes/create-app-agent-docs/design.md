@@ -1,51 +1,55 @@
-# Create-App AI Agent Docs — Design
+# Create-App Agent Docs — Design
 
 ## Context
 
-See proposal.md — Why. The `@blazing-cms/create-app` package is a single-file
-scaffolder (`src/index.ts`) plus a thin `bin/` wrapper, tested with vitest
-against mocked `node:fs` and `node:readline`. It is documentation-only change;
-no runtime behavior changes.
+See proposal.md — Why. The `@blazing-cms/create-app` scaffold writes every
+project file through the `createFile(dir, name, content)` helper using inline
+template-literal strings. The deliverable is a new `AGENTS.md` file emitted into
+every generated project, authored at `packages/create-app/AGENTS.md`.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- Produce a `packages/create-app/AGENTS.md` that gives an AI agent everything it
-  needs to safely edit, test, and extend the scaffold without reading every
-  source file.
-- Accurately document the current state of the package, including known
-  template drift from the `@blazing-cms/schema` DSL.
+- Every scaffolded project contains an `AGENTS.md` that orients an AI coding
+  agent to the generated app (layout, schema-as-source-of-truth, commands,
+  Firebase env config).
+- A single authored source for the template content so docs and scaffold
+  output can't drift apart.
 
 **Non-Goals:**
 
-- Fixing the outdated example templates in `scaffold()` — flagged in the docs
-  instead so agents know not to treat them as authoritative.
-- Adding root-level or other packages' `AGENTS.md` files.
-- Any change to package source, tests, or build.
+- Root-level or per-package agent docs for the monorepo itself.
+- Fixing the outdated example schema templates in `scaffold()` — separate
+  schema-DSL-sync change.
+- Any change to the CMS packages or the docs site.
 
 ## Decisions
 
-- **Placement**: `packages/create-app/AGENTS.md`, following the convention of
-  agent-oriented docs living beside the package they describe. Alternative:
-  a section in the docs site — rejected because agent docs must live in the
-  repo tree the agent actually explores.
-- **Scope of content**: document (1) identity + invocation, (2) source layout,
-  (3) how `scaffold()` writes templates and the `createFile`/`makePrompt`
-  helpers, (4) dev workflow commands, (5) test conventions, (6) gotchas —
-  specifically that example `posts.ts` / `site-settings.ts` templates use
-  outdated DSL (`required`, `sourceField`, `status()`, `image()`) versus the
-  current `validation`, `source`, `media`/`upload` builders, and that templates
-  are emitted with `content.trimStart()`.
-- **Accuracy over brevity**: verified against `src/index.ts`, `bin/`, the two
-  test files, and `@blazing-cms/schema` builders before writing. No invented
-  claims about the package.
+- **Single source of truth**: `packages/create-app/AGENTS.md` holds the
+  template content. `scaffold()` reads it at runtime via
+  `new URL("../AGENTS.md", import.meta.url)` (works from both `src/` under
+  vitest and `dist/` when installed, since the published tarball includes the
+  file at the package root) and writes it into the project with the existing
+  `createFile` helper. Alternative: inlining the content as a template literal
+  like the other templates — rejected because the docs would then be
+  duplicated in two places.
+- **Template path in the project**: written to the project root as
+  `AGENTS.md`, matching the `package.json`/`tsconfig.json`/`.env` pattern of
+  root-level project files.
+- **Content scope**: describes the generated app only — layout, schema
+  source-of-truth model, commands, Firebase env vars, next steps. It links to
+  the docs site instead of duplicating the full schema reference.
+- **Test approach**: keep the existing `vi.mock("node:fs", ...)` but spread in
+  the real module (`vi.importActual`) so `readFileSync` still works, and assert
+  that `AGENTS.md` is written.
 
 ## Risks / Trade-offs
 
-- [Docs go stale as the package evolves] → keep the file small and focused on
-  facts that change slowly; the gotchas section is the most likely to drift,
-  so it names the exact source locations to re-check.
-- [Agent acts on the flagged drift and "fixes" templates unprompted] → the
-  docs state explicitly that the drift is known and out of scope for this
-  change; template changes belong to a schema-DSL-sync change.
+- [Reading a file at runtime couples the scaffold to the template existing in
+  the installed package] → the package has no `files` allowlist, so `AGENTS.md`
+  is always published; if it's ever missing, `scaffold()` should fail loudly
+  rather than write a broken project.
+- [Docs content drifts from the real generated app] → content is kept concise
+  and points to the docs site; the gotchas section is verified against
+  `@blazing-cms/schema` builders before writing.

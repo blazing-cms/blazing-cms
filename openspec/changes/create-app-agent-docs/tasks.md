@@ -1,16 +1,17 @@
-# Create-App AI Agent Docs — Tasks
+# Create-App Agent Docs — Tasks
 
-## 1. Author the agent documentation
+## 1. Author the generated-app docs template
 
-- [ ] 1.1 Create `packages/create-app/AGENTS.md` covering package identity (name, version, bin entry, main entry)
-- [ ] 1.2 Document the source layout: `src/index.ts`, `bin/create-blazing-cms-app.js`, `src/__tests__/`, `dist/`
-- [ ] 1.3 Document how `scaffold()` works: directory structure it creates, the `createFile`/`makePrompt` helpers, and the `trimStart()` template convention
-- [ ] 1.4 Document the dev workflow commands (build, test, typecheck, lint) for this package
-- [ ] 1.5 Document testing conventions: vitest with mocked `node:fs` and `node:readline`
-- [ ] 1.6 Add a gotchas section flagging the outdated schema DSL in the example templates (`required`, `sourceField`, `status()`, `image()`) versus current `@blazing-cms/schema` builders (`validation`, `source`, `media`/`upload`), and that template changes belong to a separate schema-DSL-sync change
+- [ ] 1.1 Rewrite `packages/create-app/AGENTS.md` as docs for a generated Blazing CMS app (not the create-app package): project layout, schema-as-source-of-truth, commands, Firebase env config, next steps
+- [ ] 1.2 Keep the content accurate against the current schema DSL and CLI (`blaze dev/build/generate/deploy/scaffold`), pointing to the docs site for details
 
-## 2. Verify
+## 2. Emit AGENTS.md from the scaffold
 
-- [ ] 2.1 Confirm all claims in AGENTS.md match `src/index.ts`, `bin/`, and the test files
-- [ ] 2.2 Run `pnpm --filter @blazing-cms/create-app typecheck` and `pnpm --filter @blazing-cms/create-app test`
-- [ ] 2.3 Run `openspec validate` on the change
+- [ ] 2.1 Update `scaffold()` in `packages/create-app/src/index.ts` to read `AGENTS.md` from the package (`new URL("../AGENTS.md", import.meta.url)`) and write it to the project root via `createFile`
+- [ ] 2.2 Update the scaffold tests so `node:fs` keeps a real `readFileSync` (`vi.importActual` spread) and assert `AGENTS.md` is written at the project root
+
+## 3. Verify
+
+- [ ] 3.1 Run `pnpm --filter @blazing-cms/create-app typecheck` and `pnpm --filter @blazing-cms/create-app test`
+- [ ] 3.2 Run `openspec validate create-app-agent-docs`
+- [ ] 3.3 Regenerate a sample app and confirm `AGENTS.md` is present

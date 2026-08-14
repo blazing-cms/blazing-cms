@@ -1,35 +1,37 @@
-# Create-App AI Agent Docs
+# Create-App Agent Docs
 
 ## Why
 
-The `@blazing-cms/create-app` package is the entry point for every new project,
-but nothing in the repository documents how it works: its scaffold output, its
-templating conventions, its testing setup, or the fact that its example schema
-templates have drifted from the current `@blazing-cms/schema` DSL. AI coding
-agents working in this package have to reverse-engineer all of it from source
-and can easily introduce changes that break the scaffold or regenerate
-outdated examples.
+`@blazing-cms/create-app` scaffolds new projects, but the generated projects ship
+with no guidance for AI coding agents: nothing documents the project layout,
+how the schema files drive the admin panel, or which commands to run. Agents
+working in a generated app have to reverse-engineer the CMS from scratch. The
+scaffolder should emit an `AGENTS.md` into every new project.
 
 ## What Changes
 
-- Add `packages/create-app/AGENTS.md` documenting the package for AI coding
-  agents, covering:
-  - Purpose, package identity, and how the CLI is invoked
-  - Source layout (`src/index.ts`, `src/__tests__/`, `bin/`)
-  - How `scaffold()` works: the template files it writes and the `createFile`
-    / `makePrompt` helpers
-  - Development workflow: build, test, typecheck, lint commands
-  - Testing conventions: vitest with mocked `node:fs` / `node:readline`
-  - Gotchas: the example collection/global templates currently use an outdated
-    schema DSL (`required`, `sourceField`, `status()`, `image()`) that no longer
-    matches `@blazing-cms/schema` builders, and how to keep templates in sync
-- No runtime behavior changes to the package.
+- Add an `AGENTS.md` template that `@blazing-cms/create-app` writes into every
+  generated project. The template lives at `packages/create-app/AGENTS.md` and
+  is the single source of truth for its content.
+- The generated `AGENTS.md` documents, for the generated app:
+  - Project layout (`blazing-cms.config.ts`, `cms/collections`,
+    `cms/globals`, `.env`, `.gitignore`)
+  - That TypeScript schema files are the source of truth and drive
+    generation (types, SDK, validation, Firestore rules, indexes)
+  - Dev workflow commands (`pnpm dev`, `build`, `generate`, `deploy`,
+    `scaffold`)
+  - Firebase configuration via `VITE_FIREBASE_*` env vars and
+    `VITE_BACKEND_MODE` (`firebase` | `mock`)
+  - Next steps and pointers to the docs site
+- Update `scaffold()` to read and write the `AGENTS.md` template, and update
+  its tests to cover it.
+- No behavior changes to the CMS itself.
 
 ## Capabilities
 
 ### New Capabilities
 
-None — this change adds documentation only.
+None — this change adds a scaffold output file only.
 
 ### Modified Capabilities
 
@@ -38,6 +40,8 @@ None — no spec-level behavior changes. This change opts out of specs via
 
 ## Impact
 
-- New file: `packages/create-app/AGENTS.md`
-- No changes to source, tests, build, or runtime behavior of
-  `@blazing-cms/create-app` or any other package
+- Modified: `packages/create-app/src/index.ts` (write AGENTS.md into the new
+  project), `packages/create-app/src/__tests__/` (coverage for the new file)
+- New/changed: `packages/create-app/AGENTS.md` (the generated-app docs
+  template)
+- Generated apps created after this change will include `AGENTS.md`
