@@ -3,7 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { scaffold } from "../index.js";
 
-vi.mock("node:fs", () => ({
+vi.mock("node:fs", async (importOriginal) => ({
+  ...(await importOriginal()),
   existsSync: vi.fn(),
   mkdirSync: vi.fn(),
   writeFileSync: vi.fn(),
@@ -53,6 +54,18 @@ describe("scaffold", () => {
     expect(writtenFiles.some((p) => p.toString().includes("cms/globals/site-settings.ts"))).toBe(
       true,
     );
+    expect(writtenFiles.some((p) => p.toString().endsWith("AGENTS.md"))).toBe(true);
+  });
+
+  it("writes the AGENTS.md template to the project root", async () => {
+    vi.mocked(fs.existsSync).mockReturnValue(false);
+    await scaffold("my-cms");
+    const calls = vi.mocked(fs.writeFileSync).mock.calls;
+    const agentsCall = calls.find((c) => c[0].toString().endsWith("AGENTS.md"));
+    const content = agentsCall?.[1] as string;
+    expect(content).toContain("# AGENTS.md — Blazing CMS Project");
+    expect(content).toContain("blazing-cms.config.ts");
+    expect(content).toContain("validation: { required: true }");
   });
 
   it("package.json contains correct project name", async () => {

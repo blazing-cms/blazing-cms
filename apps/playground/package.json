@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "cms dev",
-    "build": "cms build",
-    "generate": "cms generate",
+    "dev": "blaze dev",
+    "build": "blaze build",
+    "generate": "blaze generate",
     "test": "vitest run"
   },
   "dependencies": {

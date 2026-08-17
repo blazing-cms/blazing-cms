@@ -1,0 +1,71 @@
+# AGENTS.md — Blazing CMS Project
+
+Agent-oriented documentation for this generated Blazing CMS project. Read this
+before editing anything in the repo.
+
+## What this project is
+
+A schema-defined CMS project for Firebase. The content model is defined in
+TypeScript files; the `blaze` CLI generates the admin panel, a typed SDK,
+validation, Firestore security rules, and indexes from them. The backend is
+Firebase (Firestore, Auth, Storage) accessed entirely from the client — there is
+no server code in this project.
+
+## Project layout
+
+```
+.
+  blazing-cms.config.ts     # Project name + Firebase config + capabilities
+  cms/
+    collections/            # Content-type schemas (one .ts file per collection)
+    globals/                # Singleton content schemas (site settings, etc.)
+    components/             # Reusable field-group schemas
+  src/                      # App code (unused unless you add custom UI)
+  .env                      # Local Firebase credentials (gitignored)
+  .env.example              # Documented env template
+```
+
+## Schema files are the source of truth
+
+- Collections define content types with multiple entries; globals define
+  singletons; components are reusable field groups.
+- Field types and validation come from `@blazing-cms/schema` builders:
+  `text`, `textarea`, `richText`, `markdown`, `code`, `number`, `boolean`,
+  `date`, `datetime`, `email`, `url`, `select`, `relation`, `media`, `upload`,
+  `component`, `dynamicZone`, `array`, `object`, `slug`, and more.
+- Use `validation: { required: true }` for required fields (not a top-level
+  `required` key) and `slug("slug", { source: "title" })` for slug fields.
+- The CLI regenerates types, the SDK, validation, Firestore rules, and indexes
+  from these files — edit the schema files, never the generated output.
+
+## Commands
+
+```bash
+pnpm dev           # Start the dev server + admin panel
+pnpm build         # Build the admin panel for production
+pnpm generate      # Regenerate types, SDK, validation, rules, indexes
+pnpm scaffold      # Scaffold a new collection/global/component
+pnpm deploy        # Deploy the admin panel to Firebase Hosting
+```
+
+`blaze dev` and `blaze generate` also sync schema definitions to Firestore under
+`_schemas/` so the admin panel can introspect them at runtime.
+
+## Configuration
+
+Firebase credentials are set via environment variables (`.env`):
+
+- `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_API_KEY`,
+  `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_STORAGE_BUCKET`,
+  `VITE_FIREBASE_APP_ID`
+- `VITE_BACKEND_MODE` — `firebase` (live backend) or `mock` (in-memory, for
+  local development without a Firebase project)
+
+The project id and credentials are also mirrored in `blazing-cms.config.ts`.
+
+## Next steps
+
+- Copy `.env.example` to `.env` and fill in your Firebase config, then run
+  `pnpm dev` and open the admin panel at `http://localhost:5173/`.
+- Add collections under `cms/collections/` and globals under `cms/globals/`.
+- Full schema, admin, and capability docs live in the Blazing CMS docs site.
