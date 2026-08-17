@@ -1,5 +1,11 @@
 # @blazing-cms/types
 
+## 0.1.2
+
+### Patch Changes
+
+- 39af37c: emit AGENTS.md into generated projects
+
 ## 0.1.1
 
 ### Patch Changes
