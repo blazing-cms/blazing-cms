@@ -128,6 +128,7 @@ export async function scaffold(projectName: string): Promise<void> {
   },
   "dependencies": {
     "@blazing-cms/cms": "latest",
+    "@blazing-cms/schema": "latest",
     "firebase": "^12"
   },
   "devDependencies": {
