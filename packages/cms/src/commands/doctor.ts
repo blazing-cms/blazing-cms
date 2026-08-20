@@ -6,7 +6,7 @@ export interface DoctorOptions {
 }
 
 export async function doctor(options: DoctorOptions): Promise<void> {
-  const schemaDir = resolve(process.cwd(), options.dir ?? "cms");
+  const schemaDir = resolve(process.cwd(), options.dir ?? "src/cms");
   const errors: string[] = [];
   const warnings: string[] = [];
 
@@ -23,7 +23,13 @@ export async function doctor(options: DoctorOptions): Promise<void> {
   }
 
   // Firebase env vars (VITE_ prefixed — used by admin panel)
-  const requiredVars = ["VITE_FIREBASE_API_KEY", "VITE_FIREBASE_AUTH_DOMAIN", "VITE_FIREBASE_PROJECT_ID", "VITE_FIREBASE_STORAGE_BUCKET", "VITE_FIREBASE_APP_ID"];
+  const requiredVars = [
+    "VITE_FIREBASE_API_KEY",
+    "VITE_FIREBASE_AUTH_DOMAIN",
+    "VITE_FIREBASE_PROJECT_ID",
+    "VITE_FIREBASE_STORAGE_BUCKET",
+    "VITE_FIREBASE_APP_ID",
+  ];
   for (const v of requiredVars) {
     if (!process.env[v]) {
       errors.push(`Missing ${v} in environment`);
@@ -45,9 +51,15 @@ export async function doctor(options: DoctorOptions): Promise<void> {
     console.warn(`  ⚠ Schema dir missing: ${schemaDir}`);
   }
 
-  const colCount = existsSync(collectionsDir) ? readdirSync(collectionsDir).filter(f => f.endsWith(".ts")).length : 0;
-  const globalCount = existsSync(globalsDir) ? readdirSync(globalsDir).filter(f => f.endsWith(".ts")).length : 0;
-  const compCount = existsSync(componentsDir) ? readdirSync(componentsDir).filter(f => f.endsWith(".ts")).length : 0;
+  const colCount = existsSync(collectionsDir)
+    ? readdirSync(collectionsDir).filter((f) => f.endsWith(".ts")).length
+    : 0;
+  const globalCount = existsSync(globalsDir)
+    ? readdirSync(globalsDir).filter((f) => f.endsWith(".ts")).length
+    : 0;
+  const compCount = existsSync(componentsDir)
+    ? readdirSync(componentsDir).filter((f) => f.endsWith(".ts")).length
+    : 0;
 
   console.warn(`  Collections: ${colCount} schema(s)`);
   console.warn(`  Globals: ${globalCount} schema(s)`);
@@ -65,8 +77,13 @@ export async function doctor(options: DoctorOptions): Promise<void> {
   // Package.json blaze scripts
   const pkgPath = resolve(process.cwd(), "package.json");
   if (existsSync(pkgPath)) {
-    const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
-    const hasBlazeDep = !!(pkg.dependencies?.["@blazing-cms/cms"] || pkg.devDependencies?.["@blazing-cms/cms"]);
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf-8")) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    const hasBlazeDep = !!(
+      pkg.dependencies?.["@blazing-cms/cms"] || pkg.devDependencies?.["@blazing-cms/cms"]
+    );
     console.warn(`  ${hasBlazeDep ? "✓" : "⚠"} @blazing-cms/cms dependency`);
   }
 

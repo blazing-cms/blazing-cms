@@ -23,7 +23,7 @@ no server code in this project.
 \`\`\`
 .
   blazing-cms.config.ts     # Project name + Firebase config + capabilities
-  cms/
+  src/cms/
     collections/            # Content-type schemas (one .ts file per collection)
     globals/                # Singleton content schemas (site settings, etc.)
     components/             # Reusable field-group schemas
@@ -74,7 +74,7 @@ The project id and credentials are also mirrored in \`blazing-cms.config.ts\`.
 
 - Copy \`.env.example\` to \`.env\` and fill in your Firebase config, then run
   \`pnpm dev\` and open the admin panel at \`http://localhost:5173/\`.
-- Add collections under \`cms/collections/\` and globals under \`cms/globals/\`.
+- Add collections under \`src/cms/collections/\` and globals under \`src/cms/globals/\`.
 - Full schema, admin, and capability docs live in the Blazing CMS docs site.
 `;
 
@@ -106,8 +106,8 @@ export async function scaffold(projectName: string): Promise<void> {
   console.warn(`\n  Creating Blazing CMS project: ${displayName}\n`);
 
   // Create directory structure
-  mkdirSync(resolve(dir, "cms/collections"), { recursive: true });
-  mkdirSync(resolve(dir, "cms/globals"), { recursive: true });
+  mkdirSync(resolve(dir, "src/cms/collections"), { recursive: true });
+  mkdirSync(resolve(dir, "src/cms/globals"), { recursive: true });
   mkdirSync(resolve(dir, "src"), { recursive: true });
 
   // package.json
@@ -152,7 +152,7 @@ export async function scaffold(projectName: string): Promise<void> {
     "strict": true,
     "noEmit": true
   },
-  "include": ["cms"]
+  "include": ["src/cms"]
 }
 `,
   );
@@ -223,7 +223,7 @@ firebase-debug.log
   // Example collection
   createFile(
     dir,
-    "cms/collections/posts.ts",
+    "src/cms/collections/posts.ts",
     `
 import { defineCollection, text, slug, richText, select } from "@blazing-cms/schema";
 
@@ -253,7 +253,7 @@ export default defineCollection({
   // Example global
   createFile(
     dir,
-    "cms/globals/site-settings.ts",
+    "src/cms/globals/site-settings.ts",
     `
 import { defineGlobal, text, media } from "@blazing-cms/schema";
 
