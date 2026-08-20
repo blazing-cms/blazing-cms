@@ -1,5 +1,15 @@
 # @blazing-cms/schema
 
+## 0.1.6
+
+### Patch Changes
+
+- 3b28e86: refactor: move schema definitions from cms/ to src/cms/
+
+  - Update default schema directory from "cms" to "src/cms" across all commands and loaders
+  - Update create-app template to scaffold src/cms/ instead of cms/
+  - Update AGENTS.md documentation
+
 ## 0.1.5
 
 ### Patch Changes
