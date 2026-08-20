@@ -28,10 +28,13 @@ describe("scaffold", () => {
   it("creates project directory structure", async () => {
     vi.mocked(fs.existsSync).mockReturnValue(false);
     await scaffold("my-cms");
-    expect(fs.mkdirSync).toHaveBeenCalledWith(resolve(process.cwd(), "my-cms", "cms/collections"), {
-      recursive: true,
-    });
-    expect(fs.mkdirSync).toHaveBeenCalledWith(resolve(process.cwd(), "my-cms", "cms/globals"), {
+    expect(fs.mkdirSync).toHaveBeenCalledWith(
+      resolve(process.cwd(), "my-cms", "src/cms/collections"),
+      {
+        recursive: true,
+      },
+    );
+    expect(fs.mkdirSync).toHaveBeenCalledWith(resolve(process.cwd(), "my-cms", "src/cms/globals"), {
       recursive: true,
     });
     expect(fs.mkdirSync).toHaveBeenCalledWith(resolve(process.cwd(), "my-cms", "src"), {
