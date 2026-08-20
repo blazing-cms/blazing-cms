@@ -1,5 +1,13 @@
 # @blazing-cms/schema
 
+## 0.1.4
+
+### Patch Changes
+
+- 6a70e20: Fix create-app scaffold: add missing @blazing-cms/schema dependency and ship src/admin/ in cms package for dev/generate commands.
+- Updated dependencies [6a70e20]
+  - @blazing-cms/types@0.1.4
+
 ## 0.1.3
 
 ### Patch Changes
