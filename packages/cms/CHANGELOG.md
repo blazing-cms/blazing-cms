@@ -1,5 +1,14 @@
 # @blazing-cms/cms
 
+## 0.1.7
+
+### Patch Changes
+
+- ec1159a: fix(cms): move vite plugins to dependencies so consuming projects can resolve them
+
+  - Move @vitejs/plugin-react and @tailwindcss/vite from devDependencies to dependencies
+  - These are imported in src/admin/vite.config.ts which ships with the package
+
 ## 0.1.6
 
 ### Patch Changes
