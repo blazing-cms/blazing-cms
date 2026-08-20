@@ -17,7 +17,8 @@
   "files": [
     "bin",
     "dist",
-    "src/admin"
+    "src/admin",
+    "src/commands"
   ],
   "scripts": {
     "build": "tsc && vite build --config src/admin/vite.config.ts",

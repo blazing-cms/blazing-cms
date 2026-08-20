@@ -225,7 +225,7 @@ firebase-debug.log
     dir,
     "cms/collections/posts.ts",
     `
-import { defineCollection, text, slug, richText, status } from "@blazing-cms/schema";
+import { defineCollection, text, slug, richText, select } from "@blazing-cms/schema";
 
 export default defineCollection({
   slug: "posts",
@@ -236,9 +236,15 @@ export default defineCollection({
   },
   fields: [
     text("title", { required: true }),
-    slug("slug", { sourceField: "title" }),
+    slug("slug", { source: "title" }),
     richText("content"),
-    status(),
+    select("status", {
+      options: [
+        { label: "Draft", value: "draft" },
+        { label: "Published", value: "published" },
+      ],
+      defaultValue: "draft",
+    }),
   ],
 });
 `,
@@ -249,14 +255,14 @@ export default defineCollection({
     dir,
     "cms/globals/site-settings.ts",
     `
-import { defineGlobal, text, image } from "@blazing-cms/schema";
+import { defineGlobal, text, media } from "@blazing-cms/schema";
 
 export default defineGlobal({
   slug: "site-settings",
   label: "Site Settings",
   fields: [
     text("siteName"),
-    image("logo"),
+    media("logo", { allowedTypes: ["image"] }),
   ],
 });
 `,
