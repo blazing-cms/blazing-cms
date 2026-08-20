@@ -10,7 +10,7 @@ export default defineConfig({
     },
   ],
   reporter: "list",
-  retries: process.env.CI ? 2 : 0,
+  retries: 2,
   testDir: "./e2e",
   timeout: 30_000,
   use: {
