@@ -5,7 +5,7 @@ import { resolve } from "path";
 
 import { generate } from "../../commands/generate.js";
 
-const SCHEMA_ROOT = "cms";
+const SCHEMA_ROOT = "src/cms";
 const VALID_DIRS = ["collections", "globals", "components"];
 
 function send(res: import("http").ServerResponse, status: number, data: Record<string, unknown>) {

@@ -18,7 +18,7 @@ export class SchemaLoader {
   private forceReload: boolean;
 
   constructor(schemaDir?: string, forceReload?: boolean) {
-    this.schemaDir = schemaDir ?? resolve(process.cwd(), "cms");
+    this.schemaDir = schemaDir ?? resolve(process.cwd(), "src/cms");
     this.forceReload = forceReload ?? false;
   }
 

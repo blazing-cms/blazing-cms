@@ -9,7 +9,7 @@ export interface LintOptions {
 }
 
 export async function lint(options: LintOptions): Promise<void> {
-  const schemaDir = resolve(process.cwd(), options.dir ?? "cms");
+  const schemaDir = resolve(process.cwd(), options.dir ?? "src/cms");
   console.warn(`Linting schemas in ${schemaDir}...`);
 
   const loader = new SchemaLoader(schemaDir);

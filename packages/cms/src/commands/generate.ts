@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- TODO: refactor into smaller modules */
 import type {
   CapabilityName,
   CollectionDefinition,
@@ -272,7 +273,7 @@ function shouldRun(type: string | undefined, kind: string): boolean {
 }
 
 function schemaDirFor(options: GenerateOptions): string {
-  return resolve(process.cwd(), options.dir ?? "cms");
+  return resolve(process.cwd(), options.dir ?? "src/cms");
 }
 
 function outDirFor(options: GenerateOptions): string {

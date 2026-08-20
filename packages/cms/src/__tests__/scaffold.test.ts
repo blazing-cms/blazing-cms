@@ -44,7 +44,7 @@ describe("scaffold", () => {
     await scaffold({ name: "articles", type: "collection" });
     expect(mockMkdirSync).not.toHaveBeenCalled();
     expect(mockWriteFileSync).toHaveBeenCalledWith(
-      "/test/project/cms/collections/articles.ts",
+      "/test/project/src/cms/collections/articles.ts",
       expect.stringContaining("articles"),
     );
   });
@@ -54,7 +54,7 @@ describe("scaffold", () => {
     mockExistsSync.mockReturnValueOnce(true).mockReturnValueOnce(false);
     await scaffold({ name: "site-settings", type: "global" });
     expect(mockWriteFileSync).toHaveBeenCalledWith(
-      "/test/project/cms/globals/site-settings.ts",
+      "/test/project/src/cms/globals/site-settings.ts",
       expect.stringContaining("site-settings"),
     );
   });
@@ -64,7 +64,7 @@ describe("scaffold", () => {
     mockExistsSync.mockReturnValueOnce(true).mockReturnValueOnce(false);
     await scaffold({ name: "hero", type: "component" });
     expect(mockWriteFileSync).toHaveBeenCalledWith(
-      "/test/project/cms/components/hero.ts",
+      "/test/project/src/cms/components/hero.ts",
       expect.stringContaining("hero"),
     );
   });
@@ -73,7 +73,7 @@ describe("scaffold", () => {
     mockExistsSync.mockReturnValueOnce(false);
     mockExistsSync.mockReturnValueOnce(false);
     await scaffold({ name: "posts", type: "collection" });
-    expect(mockMkdirSync).toHaveBeenCalledWith("/test/project/cms/collections", {
+    expect(mockMkdirSync).toHaveBeenCalledWith("/test/project/src/cms/collections", {
       recursive: true,
     });
   });
