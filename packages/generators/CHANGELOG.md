@@ -1,5 +1,21 @@
 # @blazing-cms/generators
 
+## 0.1.5
+
+### Patch Changes
+
+- c5e68c3: fix(create-app): use valid field types and ship cms commands source
+
+  - Replace status() with select() for posts collection status field
+  - Replace image() with media() for site-settings logo field
+  - Fix slug sourceField to source property name
+  - Add src/commands to cms package files array for Vite runtime resolution
+
+- Updated dependencies [c5e68c3]
+  - @blazing-cms/schema@0.1.5
+  - @blazing-cms/types@0.1.5
+  - @blazing-cms/validation@0.1.5
+
 ## 0.1.4
 
 ### Patch Changes
