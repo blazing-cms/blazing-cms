@@ -1,0 +1,7 @@
+/*
+!/bin
+!/dist
+!/CHANGELOG.md
+
+dist/__tests__
+**/*.test.*
