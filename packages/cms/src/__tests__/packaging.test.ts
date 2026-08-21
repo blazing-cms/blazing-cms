@@ -70,6 +70,9 @@ describe("packaging", () => {
   it("every package ships compiled dist output", () => {
     for (const name of PACKAGE_NAMES) {
       const paths = pathsOf(name);
+      if (!paths.some((file) => file.startsWith("dist/"))) {
+        throw new Error(`${name} has no dist output — run \`pnpm build\` before running tests`);
+      }
       expect(paths, `${name} missing dist/index.js`).toContain("dist/index.js");
       expect(paths, `${name} missing dist/index.d.ts`).toContain("dist/index.d.ts");
     }
