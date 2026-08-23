@@ -145,6 +145,15 @@
 
 ---
 
+## Current Milestone: Admin Promotion via Custom Claims ✅
+
+- [x] **CLI promote command** — `blaze promote <uid-or-email>` sets the `role: "admin"` Firebase custom claim via the Admin SDK (`firebase-admin`, lazily imported)
+- [x] **CLI admin check** — `blaze promote <uid-or-email> --check` reports whether the user already has the admin role (exit 0 = admin, 1 = not admin)
+- [x] **Client-side claim check** — RBAC context reads ID token claims; users with the admin claim receive super-admin grants
+- [x] **Tests** — claim parsing/promotion logic unit tests
+
+---
+
 ## Current Milestone: Shared Infrastructure
 
 - [x] **Deploy Firestore indexes + Security Rules** for all new collections/specs
