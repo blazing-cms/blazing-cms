@@ -136,14 +136,7 @@ export async function main(): Promise<void> {
     }
     case "promote": {
       const m = await import("./commands/promote.js");
-      const positional = args
-        .slice(1)
-        .find((a, i) => !a.startsWith("-") && args.slice(1)[i - 1] !== "--project");
-      await m.promote({
-        check: args.includes("--check"),
-        project: getFlag(args, "--project"),
-        user: positional,
-      });
+      await m.promote(m.parsePromoteArgs(args));
       break;
     }
     default:

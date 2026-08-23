@@ -5,6 +5,9 @@ import { resolve } from "node:path";
 
 import { ADMIN_ROLE_VALUE, adminClaimStatus, adminPromotionClaims } from "../admin-claims.js";
 
+type AdminAppModule = typeof import("firebase-admin/app");
+type AdminAuthModule = typeof import("firebase-admin/auth");
+
 export interface PromoteOptions {
   /** User identifier: uid or email address. */
   user?: string;
@@ -13,17 +16,32 @@ export interface PromoteOptions {
   check?: boolean;
 }
 
-function credentialPath(): string | undefined {
-  const path = process.env.FIREBASE_CREDENTIALS ?? process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  if (!path) return undefined;
-  const resolved = resolve(path);
-  return existsSync(resolved) ? resolved : undefined;
+/** Parse CLI args for the promote command (first arg after `promote` is the user). */
+export function parsePromoteArgs(args: string[]): PromoteOptions {
+  const rest = args.slice(1);
+  const getFlag = (name: string): string | undefined => {
+    const idx = rest.indexOf(name);
+    return idx !== -1 ? rest[idx + 1] : undefined;
+  };
+  return {
+    check: args.includes("--check"),
+    project: getFlag("--project"),
+    user: rest.find((a, i) => !a.startsWith("-") && rest[i - 1] !== "--project"),
+  };
 }
 
-async function loadAdminSdk() {
+interface ResolvedUser {
+  uid: string;
+  email?: string;
+  customClaims?: Record<string, unknown>;
+}
+
+async function loadAdminSdk(): Promise<{ appMod: AdminAppModule; authMod: AdminAuthModule }> {
   try {
-    const appMod = await import("firebase-admin/app");
-    const authMod = await import("firebase-admin/auth");
+    const [appMod, authMod] = await Promise.all([
+      import("firebase-admin/app"),
+      import("firebase-admin/auth"),
+    ]);
     return { appMod, authMod };
   } catch {
     console.error(
@@ -33,11 +51,31 @@ async function loadAdminSdk() {
   }
 }
 
-async function resolveUser(
-  getAuth: typeof import("firebase-admin/auth").getAuth,
-  identifier: string,
-): Promise<{ uid: string; email?: string; customClaims?: Record<string, unknown> }> {
-  const auth = getAuth();
+function serviceAccountPath(): string | undefined {
+  const path = process.env.FIREBASE_CREDENTIALS ?? process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  if (!path) return undefined;
+  const resolved = resolve(path);
+  return existsSync(resolved) ? resolved : undefined;
+}
+
+async function initializeAdminApp(appMod: AdminAppModule, project?: string): Promise<App> {
+  const serviceAccount = serviceAccountPath();
+  if (!serviceAccount) {
+    return appMod.initializeApp({ projectId: project });
+  }
+  try {
+    return appMod.initializeApp({
+      credential: appMod.cert(serviceAccount),
+      projectId: project,
+    });
+  } catch {
+    // Fall back to Application Default Credentials.
+    return appMod.initializeApp({ projectId: project });
+  }
+}
+
+async function fetchUser(authMod: AdminAuthModule, identifier: string): Promise<ResolvedUser> {
+  const auth = authMod.getAuth();
   if (identifier.includes("@")) {
     const user = await auth.getUserByEmail(identifier);
     return { customClaims: user.customClaims, email: user.email, uid: user.uid };
@@ -46,9 +84,49 @@ async function resolveUser(
   return { customClaims: user.customClaims, email: user.email, uid: user.uid };
 }
 
+/** Resolve a user by email or uid, exiting with a friendly error when not found. */
+async function fetchUserOrExit(
+  authMod: AdminAuthModule,
+  identifier: string,
+): Promise<ResolvedUser> {
+  try {
+    return await fetchUser(authMod, identifier);
+  } catch (err) {
+    const code = (err as { code?: string }).code;
+    console.error(
+      code ? `  ✗ User not found: ${identifier} (${code})` : `  ✗ User not found: ${identifier}`,
+    );
+    process.exit(1);
+  }
+}
+
+function printCheckResult(isAdmin: boolean, identifier: string): void {
+  if (isAdmin) {
+    console.warn(`  ✓ ${identifier} has the "${ADMIN_ROLE_VALUE}" role (custom claim).`);
+    return;
+  }
+  console.warn(`  ✗ ${identifier} does not have the "${ADMIN_ROLE_VALUE}" role.`);
+  process.exit(1);
+}
+
+function printAlreadyAdmin(user: ResolvedUser): void {
+  console.warn(
+    `  ✓ ${user.email ?? user.uid} already has the "${ADMIN_ROLE_VALUE}" role. Nothing to do.`,
+  );
+}
+
+async function setAdminClaim(authMod: AdminAuthModule, user: ResolvedUser): Promise<void> {
+  await authMod
+    .getAuth()
+    .setCustomUserClaims(user.uid, adminPromotionClaims(user.customClaims ?? {}));
+}
+
+function userLabel(user: ResolvedUser): string {
+  return user.email ?? user.uid;
+}
+
 export async function promote(options: PromoteOptions): Promise<void> {
-  const identifier = options.user;
-  if (!identifier) {
+  if (!options.user) {
     console.error(
       "  ✗ Missing user. Usage: blaze promote <uid-or-email> [--check] [--project <id>]",
     );
@@ -58,52 +136,24 @@ export async function promote(options: PromoteOptions): Promise<void> {
   console.warn("\n  Blazing CMS Promote\n");
 
   const { appMod, authMod } = await loadAdminSdk();
-  const credPath = credentialPath();
+  await initializeAdminApp(appMod, options.project);
+  const user = await fetchUserOrExit(authMod, options.user);
 
-  let app: App;
-  try {
-    app = credPath
-      ? appMod.initializeApp({ credential: appMod.cert(credPath), projectId: options.project })
-      : appMod.initializeApp({ projectId: options.project });
-  } catch {
-    // Reuse an already-initialized default app (e.g. repeated invocations).
-    app = appMod.initializeApp();
-  }
-
-  let user: Awaited<ReturnType<typeof resolveUser>>;
-  try {
-    user = await resolveUser(authMod.getAuth, identifier);
-  } catch (err) {
-    const code = (err as { code?: string }).code ?? "";
-    console.error(`  ✗ User not found: ${identifier}${code ? ` (${code})` : ""}`);
-    process.exit(1);
-  }
-
-  const status = adminClaimStatus(user.customClaims);
+  const isAdmin = adminClaimStatus(user.customClaims) === "admin";
 
   if (options.check) {
-    if (status === "admin") {
-      console.warn(`  ✓ ${identifier} has the "${ADMIN_ROLE_VALUE}" role (custom claim).`);
-      return;
-    }
-    console.warn(`  ✗ ${identifier} does not have the "${ADMIN_ROLE_VALUE}" role.`);
-    process.exit(1);
-  }
-
-  if (status === "admin") {
-    console.warn(
-      `  ✓ ${user.email ?? user.uid} already has the "${ADMIN_ROLE_VALUE}" role. Nothing to do.`,
-    );
+    printCheckResult(isAdmin, options.user);
     return;
   }
 
-  await authMod
-    .getAuth(app)
-    .setCustomUserClaims(user.uid, adminPromotionClaims(user.customClaims ?? {}));
+  if (isAdmin) {
+    printAlreadyAdmin(user);
+    return;
+  }
 
-  console.warn(
-    `\n  ✓ Promoted ${user.email ?? user.uid} to "${ADMIN_ROLE_VALUE}" via custom claims.`,
-  );
+  await setAdminClaim(authMod, user);
+
+  console.warn(`\n  ✓ Promoted ${userLabel(user)} to "${ADMIN_ROLE_VALUE}" via custom claims.`);
   console.warn("  Note: the claim propagates to ID tokens on next sign-in or token refresh.");
   console.warn("  In the admin panel it takes effect after re-login (or token auto-refresh).\n");
 }
