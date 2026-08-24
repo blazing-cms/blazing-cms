@@ -1,5 +1,28 @@
 # @blazing-cms/core
 
+## 0.1.8
+
+### Patch Changes
+
+- b80da98: chore: exclude source and test files from published packages
+
+  - Add whitelist .npmignore to all packages so tarballs ship only dist (+ bin for CLI packages) and CHANGELOG.md
+  - Remove files field from package.json so .npmignore exclusions apply inside dist, dropping compiled test artifacts
+  - Keep cms runtime src (required by blaze dev/build at runtime) while stripping its tests, **generated**, and dev configs
+  - Add packaging test asserting tarball contents for all 10 packages
+  - Run build before tests in CI so the packaging test sees dist output
+
+- 83809fa: feat: promote users to admin via Firebase custom claims
+
+  - Add `blaze promote <uid-or-email>` CLI command — sets the `role: "admin"` custom claim via the Firebase Admin SDK, preserving existing claims
+  - Add `--check` flag — reports whether a user already has the admin role (exit 0 = admin, 1 = not admin)
+  - RBAC context now reads ID token custom claims; users with the admin claim receive super-admin grants and `hasAdminRole` is exposed on `usePermissions()`
+  - Add `firebase-admin` dependency to `@blazing-cms/cms` (lazily imported only by the promote command)
+
+- Updated dependencies [b80da98]
+- Updated dependencies [83809fa]
+  - @blazing-cms/types@0.1.8
+
 ## 0.1.5
 
 ### Patch Changes

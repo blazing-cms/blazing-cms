@@ -1,6 +1,6 @@
 {
   "name": "@blazing-cms/create-app",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "type": "module",
   "bin": "bin/create-blazing-cms-app.js",
   "main": "dist/index.js",
