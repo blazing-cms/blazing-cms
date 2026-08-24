@@ -13,6 +13,7 @@ import type { DataProvider } from "@/lib/providers/types";
 import { useAuth } from "@/lib/auth";
 import { useDataProvider } from "@/lib/providers/context";
 
+import { isAdminClaim } from "../../../admin-claims";
 import {
   bootstrapAdminGrants,
   expandRolePermissions,
@@ -22,11 +23,14 @@ import {
   normalizePermissions,
   roleIdsFromRecords,
 } from "./permissions";
+import { SUPER_ADMIN_GRANT } from "./types";
 
 interface RbacContextValue {
   grants: string[];
   roleIds: string[];
   loading: boolean;
+  /** True when the signed-in user has the `role: "admin"` custom claim. */
+  hasAdminRole: boolean;
   can: (action: string, resource: string) => boolean;
   canSystem: (action: string) => boolean;
   refresh: () => Promise<void>;
@@ -40,10 +44,25 @@ export function usePermissions(): RbacContextValue {
   return ctx;
 }
 
+async function loadAdminClaim(user: {
+  getIdTokenResult: () => Promise<{ claims: unknown }>;
+}): Promise<boolean> {
+  try {
+    const result = await user.getIdTokenResult();
+    return isAdminClaim(result.claims as Record<string, unknown>);
+  } catch {
+    return false;
+  }
+}
+
 async function loadGrants(
   provider: DataProvider,
   userId: string,
+  options: { adminClaim?: boolean } = {},
 ): Promise<{ grants: string[]; roleIds: string[] }> {
+  if (options.adminClaim) {
+    return { grants: [SUPER_ADMIN_GRANT], roleIds: [] };
+  }
   const [userRoles, userRecord, rolesResult] = await Promise.all([
     provider.findOne("user_roles", userId),
     provider.findOne("users", userId),
@@ -67,8 +86,13 @@ async function loadGrants(
 export function RbacProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const provider = useDataProvider();
-  const [state, setState] = useState<{ grants: string[]; roleIds: string[] }>({
+  const [state, setState] = useState<{
+    grants: string[];
+    roleIds: string[];
+    hasAdminRole: boolean;
+  }>({
     grants: [],
+    hasAdminRole: false,
     roleIds: [],
   });
   const [loading, setLoading] = useState(false);
@@ -77,13 +101,20 @@ export function RbacProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    setState({ grants: [], roleIds: [] });
-    if (!userId) return;
+    setState({ grants: [], hasAdminRole: false, roleIds: [] });
+    if (!userId || !user) return;
     setLoading(true);
-    void loadGrants(provider, userId)
+    void loadAdminClaim(user)
+      .then((adminClaim) =>
+        loadGrants(provider, userId, { adminClaim }).then((grants) => ({ adminClaim, ...grants })),
+      )
       .then((result) => {
         if (cancelled) return;
-        setState(result);
+        setState({
+          grants: result.grants,
+          hasAdminRole: result.adminClaim,
+          roleIds: result.roleIds,
+        });
         setLoading(false);
       })
       .catch(() => {
@@ -92,24 +123,26 @@ export function RbacProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [provider, userId]);
+  }, [provider, user, userId]);
 
   const refresh = useCallback(async () => {
-    if (!userId) return;
-    const result = await loadGrants(provider, userId);
-    setState(result);
-  }, [provider, userId]);
+    if (!userId || !user) return;
+    const adminClaim = await loadAdminClaim(user);
+    const result = await loadGrants(provider, userId, { adminClaim });
+    setState({ grants: result.grants, hasAdminRole: adminClaim, roleIds: result.roleIds });
+  }, [provider, user, userId]);
 
   const value = useMemo<RbacContextValue>(
     () => ({
       can: (action, resource) => hasGrant(state.grants, action, resource),
       canSystem: (action) => hasSystemGrant(state.grants, action),
       grants: state.grants,
+      hasAdminRole: state.hasAdminRole,
       loading,
       refresh,
       roleIds: state.roleIds,
     }),
-    [loading, refresh, state.grants, state.roleIds],
+    [loading, refresh, state],
   );
 
   return <RbacContext.Provider value={value}>{children}</RbacContext.Provider>;

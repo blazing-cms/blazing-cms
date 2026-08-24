@@ -31,14 +31,25 @@ Commands:
   scaffold          Scaffold a new collection, global, or component
   lint              Lint schema definitions
   doctor            Check project health
+  promote           Promote a user to the admin role via custom claims
 
 Options:
   --help            Show help
   --sync            Deprecated. Sync now runs automatically when the
                      VITE_BACKEND_MODE env var is set to firebase.
-  --project <id>    Firebase project ID (for deploy)
+  --project <id>    Firebase project ID (for deploy/promote)
   --dir <path>      Schema directory (default: cms/)
   --name <slug>     Schema slug (for scaffold)
+
+Promote:
+  blaze promote <uid-or-email> [--check] [--project <id>]
+                    Sets the role:admin custom claim on a Firebase Auth user.
+                    With --check, only reports whether the user already has
+                    the admin role (exit code 0 = admin, 1 = not admin).
+                    Requires service-account credentials via FIREBASE_CREDENTIALS
+                    or GOOGLE_APPLICATION_CREDENTIALS (or Application Default
+                    Credentials). Users must re-login for the claim to appear
+                    in their ID token.
 
 Config:
   .env              Loaded via dotenv. Set VITE_FIREBASE_* variables for
@@ -121,6 +132,11 @@ export async function main(): Promise<void> {
     case "doctor": {
       const m = await import("./commands/doctor.js");
       await m.doctor({ dir: getFlag(args, "--dir") });
+      break;
+    }
+    case "promote": {
+      const m = await import("./commands/promote.js");
+      await m.promote(m.parsePromoteArgs(args));
       break;
     }
     default:
