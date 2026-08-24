@@ -2,7 +2,20 @@
   "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [],
+  "fixed": [
+    [
+      "@blazing-cms/cms",
+      "@blazing-cms/core",
+      "@blazing-cms/create-app",
+      "@blazing-cms/generators",
+      "@blazing-cms/permissions",
+      "@blazing-cms/plugins",
+      "@blazing-cms/schema",
+      "@blazing-cms/sdk",
+      "@blazing-cms/types",
+      "@blazing-cms/validation"
+    ]
+  ],
   "linked": [],
   "access": "public",
   "baseBranch": "main",
