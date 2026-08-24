@@ -1,5 +1,16 @@
 # @blazing-cms/plugins
 
+## 0.2.1
+
+### Patch Changes
+
+- ba5f515: Fix `useDataProvider must be used within a DataProviderWrapper` (and similar context errors) in generated projects. The admin dev server serves its source from inside `node_modules`, where Vite's dependency scanner pre-bundled every `@/` import resolving to a `.ts` file into separate chunks, duplicating module instances such as the data-provider context. The `@/` alias prefix is now excluded from dependency optimization so all admin source stays as regular modules.
+
+  All packages are also aligned to a single shared version (0.2.0) via a fixed changesets version group.
+
+- Updated dependencies [ba5f515]
+  - @blazing-cms/types@0.2.1
+
 ## 0.1.8
 
 ### Patch Changes
