@@ -1,15 +1,18 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { fileURLToPath } from "url";
 import { defineConfig } from "vite";
 
 import { schemaWriterPlugin } from "./vite-plugins/schema-writer";
+
+const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   base: "/",
   build: {
     emptyOutDir: true,
-    outDir: path.resolve(__dirname, "../../dist/admin"),
+    outDir: path.resolve(dirname, "../../dist/admin"),
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -60,6 +63,13 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
+    // In generated projects the admin source is served from inside
+    // node_modules (@blazing-cms/cms/src/admin). Vite's dep scanner then sees
+    // every "@/" import that resolves to a .ts file as an npm dependency and
+    // pre-bundles it into a separate chunk, duplicating module instances
+    // (e.g. the DataProvider context) and breaking context hooks at runtime.
+    // Excluding the alias prefix keeps all app source as regular modules.
+    exclude: ["@/"],
     include: [
       "@tiptap/core",
       "@tiptap/react",
@@ -87,8 +97,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), schemaWriterPlugin()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname),
+      "@": path.resolve(dirname),
     },
   },
-  root: path.resolve(__dirname),
+  root: path.resolve(dirname),
 });
