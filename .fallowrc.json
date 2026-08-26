@@ -55,6 +55,11 @@
         "reason": "command-line arg parser with multiple subcommands including generate:types/sdk/validation"
       },
       {
+        "files": ["packages/cms/src/commands/promote.ts"],
+        "maxCrap": 80,
+        "reason": "CLI command with env resolution, admin SDK init, user lookup, and claim promotion"
+      },
+      {
         "files": ["packages/validation/src/generator.ts"],
         "maxCyclomatic": 45,
         "maxCognitive": 30,
