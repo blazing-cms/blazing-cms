@@ -1,5 +1,17 @@
 # @blazing-cms/cms
 
+## 0.3.0
+
+### Minor Changes
+
+- 000e6c2: Add Google sign-in, admin-only login enforcement, and admin claim route guard
+
+### Patch Changes
+
+- @blazing-cms/generators@0.3.0
+- @blazing-cms/schema@0.3.0
+- @blazing-cms/types@0.3.0
+
 ## 0.2.2
 
 ### Patch Changes
