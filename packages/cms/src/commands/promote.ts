@@ -58,6 +58,17 @@ function serviceAccountPath(): string | undefined {
   return existsSync(resolved) ? resolved : undefined;
 }
 
+function printEnvInfo(project?: string): void {
+  const projectId = project ?? process.env.VITE_FIREBASE_PROJECT_ID ?? "(not set)";
+  const key = process.env.VITE_FIREBASE_API_KEY;
+  const masked =
+    key && key.length >= 8 ? `${key.slice(0, 4)}...${key.slice(-4)}` : (key ?? "(not set)");
+  const credPath = process.env.FIREBASE_CREDENTIALS ?? process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  console.warn(
+    `  Firebase Environment:\n    Project ID:       ${projectId}\n    API Key:          ${masked}\n    Credentials:      ${credPath ?? "(not set — using ADC)"}\n`,
+  );
+}
+
 async function initializeAdminApp(appMod: AdminAppModule, project?: string): Promise<App> {
   const serviceAccount = serviceAccountPath();
   if (!serviceAccount) {
@@ -93,8 +104,11 @@ async function fetchUserOrExit(
     return await fetchUser(authMod, identifier);
   } catch (err) {
     const code = (err as { code?: string }).code;
+    const projectId = process.env.VITE_FIREBASE_PROJECT_ID ?? "unknown";
     console.error(
-      code ? `  ✗ User not found: ${identifier} (${code})` : `  ✗ User not found: ${identifier}`,
+      code
+        ? `  ✗ User not found: ${identifier} (${code}) in project "${projectId}"`
+        : `  ✗ User not found: ${identifier} in project "${projectId}"`,
     );
     process.exit(1);
   }
@@ -134,26 +148,20 @@ export async function promote(options: PromoteOptions): Promise<void> {
   }
 
   console.warn("\n  Blazing CMS Promote\n");
+  printEnvInfo(options.project);
 
   const { appMod, authMod } = await loadAdminSdk();
-  await initializeAdminApp(appMod, options.project);
+  await initializeAdminApp(appMod, options.project ?? process.env.VITE_FIREBASE_PROJECT_ID);
   const user = await fetchUserOrExit(authMod, options.user);
-
   const isAdmin = adminClaimStatus(user.customClaims) === "admin";
 
-  if (options.check) {
-    printCheckResult(isAdmin, options.user);
-    return;
-  }
-
-  if (isAdmin) {
-    printAlreadyAdmin(user);
+  if (options.check || isAdmin) {
+    if (options.check) printCheckResult(isAdmin, options.user);
+    else printAlreadyAdmin(user);
     return;
   }
 
   await setAdminClaim(authMod, user);
-
   console.warn(`\n  ✓ Promoted ${userLabel(user)} to "${ADMIN_ROLE_VALUE}" via custom claims.`);
-  console.warn("  Note: the claim propagates to ID tokens on next sign-in or token refresh.");
-  console.warn("  In the admin panel it takes effect after re-login (or token auto-refresh).\n");
+  console.warn("  Note: the claim propagates to ID tokens on next sign-in or token refresh.\n");
 }
