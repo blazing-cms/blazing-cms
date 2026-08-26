@@ -172,3 +172,4 @@
 - [x] **Admin-only route guard** — `AppLayout` checks `role: admin` custom claim (via `getIdTokenResult`), not just auth state; non-admin users redirected to `/login` with an "unauthorized" message
 - [x] **Login page: admin claim error** — if user signs in but lacks `role: admin`, show "Access denied" toast and sign out
 - [x] **Tests** — auth claim check, Google provider, login guard behavior
+- [ ] **Docs: add admin user** — document how to create an admin user (promote CLI, custom claims setup)
