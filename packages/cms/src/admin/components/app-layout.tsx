@@ -3,17 +3,30 @@ import { useEffect } from "react";
 
 import { Header } from "@/components/header";
 import { Sidebar } from "@/components/sidebar";
+import { useToast } from "@/components/toast-provider";
 import { useAuth } from "@/lib/auth";
 
 export function AppLayout() {
-  const { loading, user } = useAuth();
+  const { adminChecked, isAdmin, loading, user } = useAuth();
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login" });
   }, [loading, user, navigate]);
 
-  if (loading) {
+  useEffect(() => {
+    if (!loading && user && adminChecked && !isAdmin) {
+      addToast({
+        description: "Access denied — admin access required",
+        title: "Access denied",
+        variant: "destructive",
+      });
+      navigate({ to: "/login" });
+    }
+  }, [adminChecked, isAdmin, loading, navigate, user, addToast]);
+
+  if (loading || (user && !adminChecked)) {
     return (
       <div className="flex h-screen items-center justify-center text-muted-foreground text-sm">
         Loading...
@@ -21,7 +34,7 @@ export function AppLayout() {
     );
   }
 
-  if (!user) return null;
+  if (!user || !isAdmin) return null;
 
   return (
     <div className="flex h-screen overflow-hidden">

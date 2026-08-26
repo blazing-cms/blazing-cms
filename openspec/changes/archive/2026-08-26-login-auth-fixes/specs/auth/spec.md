@@ -1,10 +1,4 @@
-# Auth Specification
-
-## Purpose
-
-Provides authentication for the CMS using the Firebase Auth client SDK, with email/password and Google sign-in, auth state observation, admin claim enforcement, and a React context that propagates the authenticated user throughout the admin panel.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Users authenticate with Firebase client SDK
 
@@ -30,25 +24,6 @@ The system SHALL use Firebase Authentication via the client SDK, accepting email
 - **WHEN** an already-authenticated user navigates to `/login`
 - **THEN** the system redirects them to the dashboard
 
-### Requirement: Auth state is observed reactively
-
-The system SHALL use `onAuthStateChanged` to track the authentication state and expose the current user via a React context.
-
-#### Scenario: Auth state listener on mount
-
-- **WHEN** the app initializes
-- **THEN** it registers an `onAuthStateChanged` listener that updates the auth context on state changes
-
-#### Scenario: Authenticated user in context
-
-- **WHEN** a user is signed in
-- **THEN** the `useAuth` hook returns the current `User` object from Firebase Auth
-
-#### Scenario: Null user when signed out
-
-- **WHEN** no user is signed in
-- **THEN** the `useAuth` hook returns `null`
-
 ### Requirement: Unauthenticated users are redirected to login
 
 The system SHALL protect admin routes by redirecting unauthenticated users to the login page. The system SHALL additionally deny access to authenticated users who lack the `role: admin` custom claim.
@@ -68,6 +43,8 @@ The system SHALL protect admin routes by redirecting unauthenticated users to th
 - **WHEN** the auth state is being determined (initial load)
 - **THEN** a loading indicator is shown and routes are not rendered
 
+## ADDED Requirements
+
 ### Requirement: Non-admin users are signed out on login
 
 The system SHALL enforce admin-only access at the point of login. If a user authenticates successfully but does not have the `role: admin` custom claim, the system SHALL sign them out and display an access-denied message.
@@ -81,26 +58,3 @@ The system SHALL enforce admin-only access at the point of login. If a user auth
 
 - **WHEN** a user signs in and has the `role: admin` custom claim
 - **THEN** the system navigates to the dashboard
-
-### Requirement: Users can sign out
-
-The system SHALL provide a sign-out mechanism that clears the auth state and redirects to the login page.
-
-#### Scenario: Sign out
-
-- **WHEN** a user clicks the sign-out button
-- **THEN** `signOut` is called and the user is redirected to `/login`
-
-### Requirement: Firebase Auth errors are surfaced appropriately
-
-The system SHALL map common Firebase Auth errors to user-friendly messages.
-
-#### Scenario: Wrong password
-
-- **WHEN** a user enters an incorrect password
-- **THEN** the system displays "Invalid email or password" rather than the raw Firebase error
-
-#### Scenario: User not found
-
-- **WHEN** a user enters an email that is not registered
-- **THEN** the system displays "No account found with this email"

@@ -162,3 +162,13 @@
 - [x] **Admin sidebar nav** — updated with new feature links
 - [x] **TSDoc documentation** — all new APIs documented
 - [x] **E2E tests** — critical paths for each new capability
+
+---
+
+## Current Milestone: Login & Auth Fixes
+
+- [x] **Google sign-in provider** — add `GoogleAuthProvider` + `signInWithPopup` to auth context
+- [x] **Login page: Google button** — add "Sign in with Google" button alongside email/password
+- [x] **Admin-only route guard** — `AppLayout` checks `role: admin` custom claim (via `getIdTokenResult`), not just auth state; non-admin users redirected to `/login` with an "unauthorized" message
+- [x] **Login page: admin claim error** — if user signs in but lacks `role: admin`, show "Access denied" toast and sign out
+- [x] **Tests** — auth claim check, Google provider, login guard behavior

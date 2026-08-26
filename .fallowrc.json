@@ -172,6 +172,16 @@
         "files": ["packages/cms/src/commands/load-config.ts"],
         "maxCrap": 80,
         "reason": "jiti-based project config loader with graceful fallback and cwd resolution"
+      },
+      {
+        "files": ["packages/cms/src/admin/components/app-layout.tsx"],
+        "maxCrap": 50,
+        "reason": "route guard with auth claim check, admin enforcement toast, and loading state"
+      },
+      {
+        "files": ["packages/cms/src/admin/routes/login.tsx"],
+        "maxCrap": 35,
+        "reason": "login form with email/password and Google sign-in plus post-login admin claim enforcement"
       }
     ]
   },
