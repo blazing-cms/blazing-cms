@@ -1,5 +1,14 @@
 # @blazing-cms/cms
 
+## 0.2.2
+
+### Patch Changes
+
+- 24ddaaa: fix(promote): load VITE_FIREBASE_PROJECT_ID from env and print debug info
+  - @blazing-cms/generators@0.2.2
+  - @blazing-cms/schema@0.2.2
+  - @blazing-cms/types@0.2.2
+
 ## 0.2.1
 
 ### Patch Changes
