@@ -1,17 +1,24 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
 import {
   getAuth,
+  GoogleAuthProvider,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   onAuthStateChanged,
   type User,
 } from "firebase/auth";
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useState, useEffect, type ReactNode } from "react";
+
+import { isAdminClaim } from "../../admin-claims";
 
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
+  isAdmin: boolean;
+  adminChecked: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -40,13 +47,32 @@ try {
 
 const auth = getAuth(app);
 
+async function checkAdminClaim(user: User): Promise<boolean> {
+  try {
+    const result = await user.getIdTokenResult();
+    return isAdminClaim(result.claims as Record<string, unknown>);
+  } catch {
+    return false;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminChecked, setAdminChecked] = useState(false);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
+      if (u) {
+        const admin = await checkAdminClaim(u);
+        setIsAdmin(admin);
+        setAdminChecked(true);
+      } else {
+        setIsAdmin(false);
+        setAdminChecked(true);
+      }
       setLoading(false);
     });
     return unsub;
@@ -56,12 +82,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const logout = async () => {
+  const loginWithGoogle = useCallback(async () => {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  }, []);
+
+  const logout = useCallback(async () => {
     await signOut(auth);
-  };
+    setIsAdmin(false);
+    setAdminChecked(false);
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ loading, login, logout, user }}>
+    <AuthContext.Provider
+      value={{ adminChecked, isAdmin, loading, login, loginWithGoogle, logout, user }}
+    >
       {children}
     </AuthContext.Provider>
   );
