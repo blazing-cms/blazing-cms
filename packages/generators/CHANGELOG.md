@@ -1,5 +1,13 @@
 # @blazing-cms/generators
 
+## 0.3.0
+
+### Patch Changes
+
+- @blazing-cms/schema@0.3.0
+- @blazing-cms/types@0.3.0
+- @blazing-cms/validation@0.3.0
+
 ## 0.2.2
 
 ### Patch Changes
