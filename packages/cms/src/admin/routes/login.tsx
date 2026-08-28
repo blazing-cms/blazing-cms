@@ -19,26 +19,25 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pending, setPending] = useState(false);
   const { adminChecked, isAdmin, login, loginWithGoogle, logout, user } = useAuth();
   const navigate = useNavigate();
   const { addToast } = useToast();
 
   useEffect(() => {
-    if (user && adminChecked && isAdmin) navigate({ to: "/" });
-  }, [adminChecked, isAdmin, user, navigate]);
-
-  async function handlePostLogin() {
+    if (!pending || !user || !adminChecked) return;
     if (isAdmin) {
       navigate({ to: "/" });
-      return;
+    } else {
+      addToast({
+        description: "Access denied — admin access required",
+        title: "Access denied",
+        variant: "destructive",
+      });
+      void logout();
     }
-    addToast({
-      description: "Access denied — admin access required",
-      title: "Access denied",
-      variant: "destructive",
-    });
-    await logout();
-  }
+    setPending(false);
+  }, [pending, user, adminChecked, isAdmin, navigate, addToast, logout]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -46,7 +45,7 @@ function Login() {
     setLoading(true);
     try {
       await login(email, password);
-      await handlePostLogin();
+      setPending(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Invalid credentials";
       addToast({ description: message, title: "Sign in failed", variant: "destructive" });
@@ -59,7 +58,7 @@ function Login() {
     setLoading(true);
     try {
       await loginWithGoogle();
-      await handlePostLogin();
+      setPending(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Google sign-in failed";
       addToast({ description: message, title: "Sign in failed", variant: "destructive" });
@@ -96,8 +95,8 @@ function Login() {
               placeholder="••••••••"
             />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
+          <Button type="submit" className="w-full" disabled={loading || pending}>
+            {loading || pending ? "Signing in..." : "Sign In"}
           </Button>
         </form>
         <div className="relative flex items-center gap-3">
@@ -108,7 +107,7 @@ function Login() {
         <Button
           variant="outline"
           className="w-full"
-          disabled={loading}
+          disabled={loading || pending}
           onClick={handleGoogleSignIn}
           type="button"
         >

@@ -49,7 +49,7 @@ const auth = getAuth(app);
 
 async function checkAdminClaim(user: User): Promise<boolean> {
   try {
-    const result = await user.getIdTokenResult();
+    const result = await user.getIdTokenResult(true);
     return isAdminClaim(result.claims as Record<string, unknown>);
   } catch {
     return false;
