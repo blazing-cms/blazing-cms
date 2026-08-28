@@ -3,7 +3,9 @@ import { mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createInterface } from "node:readline";
 
-const AGENTS_PATH = new URL("../AGENTS.md", import.meta.url);
+function readTemplate(name: string): string {
+  return readFileSync(new URL(`../templates/${name}`, import.meta.url), "utf-8");
+}
 
 const AGENTS_FALLBACK = `# AGENTS.md — Blazing CMS Project
 
@@ -270,10 +272,16 @@ export default defineGlobal({
 
   // AGENTS.md — agent documentation for the generated project
   try {
-    createFile(dir, "AGENTS.md", readFileSync(AGENTS_PATH, "utf-8"));
+    createFile(dir, "AGENTS.md", readTemplate("AGENTS.md"));
   } catch {
     createFile(dir, "AGENTS.md", AGENTS_FALLBACK);
   }
+
+  // Firebase deployment files
+  createFile(dir, "firebase.json", readTemplate("firebase.json"));
+  createFile(dir, ".firebaserc", readTemplate(".firebaserc"));
+  createFile(dir, "firestore.rules", readTemplate("firestore.rules"));
+  createFile(dir, "firestore.indexes.json", readTemplate("firestore.indexes.json"));
 
   console.warn(`\n  Project "${projectName}" created!\n`);
   console.warn("  Next steps:");

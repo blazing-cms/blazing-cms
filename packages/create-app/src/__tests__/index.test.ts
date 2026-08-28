@@ -58,6 +58,10 @@ describe("scaffold", () => {
       true,
     );
     expect(writtenFiles.some((p) => p.toString().endsWith("AGENTS.md"))).toBe(true);
+    expect(writtenFiles.some((p) => p.toString().endsWith("firebase.json"))).toBe(true);
+    expect(writtenFiles.some((p) => p.toString().endsWith(".firebaserc"))).toBe(true);
+    expect(writtenFiles.some((p) => p.toString().endsWith("firestore.rules"))).toBe(true);
+    expect(writtenFiles.some((p) => p.toString().endsWith("firestore.indexes.json"))).toBe(true);
   });
 
   it("writes the AGENTS.md template to the project root", async () => {
@@ -69,6 +73,27 @@ describe("scaffold", () => {
     expect(content).toContain("# AGENTS.md — Blazing CMS Project");
     expect(content).toContain("blazing-cms.config.ts");
     expect(content).toContain("validation: { required: true }");
+  });
+
+  it("firebase.json contains hosting and firestore config", async () => {
+    vi.mocked(fs.existsSync).mockReturnValue(false);
+    await scaffold("my-cms");
+    const calls = vi.mocked(fs.writeFileSync).mock.calls;
+    const firebaseCall = calls.find((c) => c[0].toString().endsWith("firebase.json"));
+    const content = firebaseCall?.[1] as string;
+    expect(content).toContain('"hosting"');
+    expect(content).toContain('"firestore"');
+    expect(content).toContain('"rewrites"');
+  });
+
+  it(".firebaserc maps default to your-project-id", async () => {
+    vi.mocked(fs.existsSync).mockReturnValue(false);
+    await scaffold("my-cms");
+    const calls = vi.mocked(fs.writeFileSync).mock.calls;
+    const firebasercCall = calls.find((c) => c[0].toString().endsWith(".firebaserc"));
+    const content = firebasercCall?.[1] as string;
+    expect(content).toContain('"default"');
+    expect(content).toContain('"your-project-id"');
   });
 
   it("package.json contains correct project name", async () => {

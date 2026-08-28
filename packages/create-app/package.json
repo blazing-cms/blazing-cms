@@ -4,6 +4,11 @@
   "type": "module",
   "bin": "bin/create-blazing-cms-app.js",
   "main": "dist/index.js",
+  "files": [
+    "dist",
+    "bin",
+    "templates"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
