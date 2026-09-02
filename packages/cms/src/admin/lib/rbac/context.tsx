@@ -13,7 +13,9 @@ import type { DataProvider } from "@/lib/providers/types";
 import { useAuth } from "@/lib/auth";
 import { useDataProvider } from "@/lib/providers/context";
 
-import { isAdminClaim } from "../../../admin-claims";
+import type { IdTokenUserLike } from "../../../admin-claims";
+
+import { loadAdminClaim } from "../../../admin-claims";
 import {
   bootstrapAdminGrants,
   expandRolePermissions,
@@ -44,15 +46,8 @@ export function usePermissions(): RbacContextValue {
   return ctx;
 }
 
-async function loadAdminClaim(user: {
-  getIdTokenResult: (forceRefresh?: boolean) => Promise<{ claims: unknown }>;
-}): Promise<boolean> {
-  try {
-    const result = await user.getIdTokenResult(true);
-    return isAdminClaim(result.claims as Record<string, unknown>);
-  } catch {
-    return false;
-  }
+async function loadAdminClaimForUser(user: IdTokenUserLike): Promise<boolean> {
+  return (await loadAdminClaim(user)) === "admin";
 }
 
 async function loadGrants(
@@ -104,7 +99,7 @@ export function RbacProvider({ children }: { children: ReactNode }) {
     setState({ grants: [], hasAdminRole: false, roleIds: [] });
     if (!userId || !user) return;
     setLoading(true);
-    void loadAdminClaim(user)
+    void loadAdminClaimForUser(user)
       .then((adminClaim) =>
         loadGrants(provider, userId, { adminClaim }).then((grants) => ({ adminClaim, ...grants })),
       )
@@ -127,7 +122,7 @@ export function RbacProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     if (!userId || !user) return;
-    const adminClaim = await loadAdminClaim(user);
+    const adminClaim = await loadAdminClaimForUser(user);
     const result = await loadGrants(provider, userId, { adminClaim });
     setState({ grants: result.grants, hasAdminRole: adminClaim, roleIds: result.roleIds });
   }, [provider, user, userId]);

@@ -1,11 +1,7 @@
 /*
 !/bin
 !/dist
-!/src
 !/CHANGELOG.md
 
 dist/__tests__
-src/__tests__
-src/admin/__generated__
-src/admin/lib/__tests__
 **/*.test.*
