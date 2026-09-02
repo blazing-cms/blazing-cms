@@ -10,7 +10,9 @@ import {
 } from "firebase/auth";
 import { createContext, useCallback, useContext, useState, useEffect, type ReactNode } from "react";
 
-import { isAdminClaim } from "../../admin-claims";
+import type { IdTokenUserLike } from "../../admin-claims";
+
+import { loadAdminClaim } from "../../admin-claims";
 
 interface AuthContextValue {
   user: User | null;
@@ -47,13 +49,9 @@ try {
 
 const auth = getAuth(app);
 
-async function checkAdminClaim(user: User): Promise<boolean> {
-  try {
-    const result = await user.getIdTokenResult(true);
-    return isAdminClaim(result.claims as Record<string, unknown>);
-  } catch {
-    return false;
-  }
+async function checkAdminClaim(user: IdTokenUserLike): Promise<boolean> {
+  const status = await loadAdminClaim(user);
+  return status === "admin";
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
