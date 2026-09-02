@@ -1,6 +1,6 @@
 {
   "name": "@blazing-cms/sdk",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Browser SDK for Blazing CMS — wraps Firebase client SDK for typed content consumption",
   "type": "module",
   "main": "dist/index.js",

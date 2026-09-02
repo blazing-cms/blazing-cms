@@ -1,5 +1,14 @@
 # @blazing-cms/cms
 
+## 0.3.1
+
+### Patch Changes
+
+- 298bd19: Fix admin login race condition: force-refresh ID token on admin-claim check, replace stale-closure post-login handler with effect-driven navigation, and add loading state during claim check
+  - @blazing-cms/generators@0.3.1
+  - @blazing-cms/schema@0.3.1
+  - @blazing-cms/types@0.3.1
+
 ## 0.3.0
 
 ### Minor Changes
