@@ -1,7 +1,19 @@
 /*
 !/bin
 !/dist
+!/src
 !/CHANGELOG.md
 
-dist/__tests__
+# Tests - never ship
 **/*.test.*
+**/__tests__/**
+src/__tests__/
+
+# Generated at runtime from the project's src/cms schema - never ship
+src/admin/__generated__/
+
+# Dev-only: not needed at runtime
+src/admin/vite-env.d.ts
+
+# Built artifacts not sourced from src
+dist/__tests__

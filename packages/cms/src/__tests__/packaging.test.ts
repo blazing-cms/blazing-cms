@@ -110,13 +110,29 @@ describe("packaging", () => {
     }
   });
 
-  it("cms excludes generated and test-only source", () => {
+  it("cms excludes generated, test-only, and dev-env source", () => {
     const leaks = pathsOf("cms").filter(
       (file) =>
         file.startsWith("src/admin/__generated__/") ||
-        file.startsWith("src/__tests__/") ||
-        file.startsWith("src/admin/lib/__tests__/"),
+        file.includes("__tests__") ||
+        /\.test\./.test(file) ||
+        file.includes("vite-env.d.ts"),
     );
     expect(leaks, `cms ships generated/test source: ${leaks.join(", ")}`).toEqual([]);
+  });
+
+  it("cms ships the runtime admin source required by dev/build", () => {
+    const paths = pathsOf("cms");
+    const required = [
+      "src/admin/vite.config.ts",
+      "src/admin/vite-plugins/schema-writer.ts",
+      "src/admin/index.html",
+      "src/admin/index.tsx",
+      "src/admin/main.tsx",
+      "src/admin/router.tsx",
+    ];
+    for (const file of required) {
+      expect(paths, `cms missing runtime admin source: ${file}`).toContain(file);
+    }
   });
 });
