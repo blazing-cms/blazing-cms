@@ -45,10 +45,10 @@ export function usePermissions(): RbacContextValue {
 }
 
 async function loadAdminClaim(user: {
-  getIdTokenResult: () => Promise<{ claims: unknown }>;
+  getIdTokenResult: (forceRefresh?: boolean) => Promise<{ claims: unknown }>;
 }): Promise<boolean> {
   try {
-    const result = await user.getIdTokenResult();
+    const result = await user.getIdTokenResult(true);
     return isAdminClaim(result.claims as Record<string, unknown>);
   } catch {
     return false;

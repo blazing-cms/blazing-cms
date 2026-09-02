@@ -1,0 +1,24 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // RBAC helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function userGrants() {
+      return get(/databases/$(database)/documents/collections_user_roles/$(request.auth.uid)).data.grants;
+    }
+    function hasGrant(grant) {
+      return isSignedIn() && (grant in userGrants() || ("*:*" in userGrants()));
+    }
+    function hasSystem(flag) {
+      return hasGrant("system:" + flag);
+    }
+
+    // Deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
