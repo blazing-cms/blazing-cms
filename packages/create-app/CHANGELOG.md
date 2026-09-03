@@ -1,5 +1,11 @@
 # @blazing-cms/create-app
 
+## 0.3.4
+
+### Patch Changes
+
+- 848c148: chore(deps): upgrade to TypeScript 6 and add explicit `@types/node` typing in tsconfig
+
 ## 0.3.3
 
 ## 0.3.2
