@@ -1,5 +1,5 @@
 import { createRoute, Link } from "@tanstack/react-router";
-import { Puzzle } from "lucide-react";
+import { Database, Puzzle } from "lucide-react";
 
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { appLayoutRoute } from "@/routes/app-layout";
@@ -10,7 +10,10 @@ export const settingsIndexRoute = createRoute({
   path: "/settings",
 });
 
-const settingsItems = [{ href: "/settings/plugins", icon: Puzzle, label: "Plugins" }];
+const settingsItems = [
+  { href: "/settings/plugins", icon: Puzzle, label: "Plugins" },
+  { href: "/settings/content", icon: Database, label: "Content Tools" },
+];
 
 function SettingsList() {
   return (
