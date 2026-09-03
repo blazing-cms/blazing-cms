@@ -134,7 +134,7 @@ export async function scaffold(projectName: string): Promise<void> {
     "firebase": "^12"
   },
   "devDependencies": {
-    "typescript": "^5"
+    "typescript": "^6"
   }
 }
 `,
