@@ -1,11 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { createRoute, Link } from "@tanstack/react-router";
-import { Plus, FileText } from "lucide-react";
+import { Download, Plus, FileText } from "lucide-react";
+import { useState } from "react";
 
-import { collections } from "@/__generated__/schema-registry";
+import { collections, components, globals } from "@/__generated__/schema-registry";
+import { useToast } from "@/components/toast-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  assembleDocument,
+  buildFieldSources,
+  downloadDocument,
+  exportCollection,
+} from "@/lib/import-export";
 import { useDataProvider } from "@/lib/providers/context";
 import { usePermissions } from "@/lib/rbac";
 import { appLayoutRoute } from "@/routes/app-layout";
@@ -19,6 +27,7 @@ export const collectionDetailRoute = createRoute({
 function CollectionEntries() {
   const { slug } = collectionDetailRoute.useParams();
   const provider = useDataProvider();
+  const { addToast } = useToast();
   const { can } = usePermissions();
   const col = collections.find((c) => c.slug === slug);
   const canCreate = can("create", slug);
@@ -30,6 +39,27 @@ function CollectionEntries() {
     },
     queryKey: ["collection", slug],
   });
+
+  const [exporting, setExporting] = useState(false);
+  const fields = buildFieldSources({ collections, components, globals });
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const rows = await exportCollection(provider, slug, fields);
+      const doc = assembleDocument({ collections: { [slug]: rows }, globals: {} });
+      const filename = `${slug}-${new Date().toISOString().slice(0, 10)}.json`;
+      downloadDocument(doc, filename);
+      addToast({
+        description: `Exported ${rows.length} entry(ies) from "${slug}".`,
+        title: "Exported",
+      });
+    } catch (err) {
+      addToast({ description: String(err), title: "Export failed", variant: "destructive" });
+    } finally {
+      setExporting(false);
+    }
+  }
 
   if (!col) {
     return (
@@ -48,13 +78,19 @@ function CollectionEntries() {
           <h1 className="text-3xl font-bold">{col.labels?.singular ?? slug}</h1>
           <p className="text-muted-foreground text-sm">/{slug}</p>
         </div>
-        {canCreate ? (
-          <Link to="/collections/new/$slug" params={{ slug }}>
-            <Button>
-              <Plus className="mr-1 h-4 w-4" /> New Entry
-            </Button>
-          </Link>
-        ) : null}
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => void handleExport()} disabled={exporting}>
+            <Download className="mr-1 h-4 w-4" />
+            {exporting ? "Exporting…" : "Export"}
+          </Button>
+          {canCreate ? (
+            <Link to="/collections/new/$slug" params={{ slug }}>
+              <Button>
+                <Plus className="mr-1 h-4 w-4" /> New Entry
+              </Button>
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       {isLoading ? (

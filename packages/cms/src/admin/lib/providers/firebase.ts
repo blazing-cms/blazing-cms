@@ -10,6 +10,7 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  writeBatch,
   query,
   where,
   orderBy,
@@ -18,6 +19,7 @@ import {
   type Firestore,
   type DocumentSnapshot,
   type QueryConstraint,
+  type WriteBatch,
 } from "firebase/firestore";
 import {
   deleteObject,
@@ -28,6 +30,14 @@ import {
   type FirebaseStorage,
 } from "firebase/storage";
 
+import type {
+  ImportBatch,
+  ImportError,
+  ImportProgress,
+  ImportResult,
+} from "@/lib/import-export/types";
+
+import { partitionWrites } from "@/lib/import-export/batch";
 import { measureImage, pick, safeFileName, validateMediaFile } from "@/lib/media/validation";
 import { historyOf, transitionRecord } from "@/lib/workflow";
 
@@ -592,6 +602,76 @@ export const firebaseProvider: DataProvider = {
     const ref = versionRef(target);
     const snap = await getDoc(doc(db, ref.versionsPath, versionId));
     return snap.exists() ? versionFromSnapshot(snap) : null;
+  },
+
+  async importContent(
+    inputCollections: Record<string, ImportBatch[]>,
+    inputGlobals: Record<string, Record<string, unknown>>,
+    onProgress?: (progress: ImportProgress) => void,
+  ): Promise<ImportResult> {
+    const BATCH_LIMIT = 500;
+    const entries = new Map<string, Map<string, ImportBatch>>();
+    for (const [name, batches] of Object.entries(inputCollections)) {
+      entries.set(name, new Map(batches.map((b) => [b.id, b])));
+    }
+
+    const total =
+      [...entries.values()].reduce((sum, m) => sum + m.size, 0) + Object.keys(inputGlobals).length;
+    let done = 0;
+    const tick = () => {
+      done += 1;
+      onProgress?.({ done, total });
+    };
+
+    let imported = 0;
+    let skipped = 0;
+    const errors: ImportError[] = [];
+
+    const writes = new Map<string, (batch: WriteBatch) => void>();
+    const enqueue = (path: string, fn: (batch: WriteBatch) => void) => writes.set(path, fn);
+    const flush = async () => {
+      for (const chunk of partitionWrites([...writes.values()], BATCH_LIMIT)) {
+        const batch = writeBatch(db);
+        chunk.forEach((apply) => apply(batch));
+        await batch.commit();
+      }
+      writes.clear();
+    };
+
+    for (const [name, byId] of entries) {
+      const colBase = `collections_${name}`;
+      for (const [id, batch] of byId) {
+        const snap = await getDoc(doc(db, colBase, id));
+        if (snap.exists()) {
+          skipped += 1;
+        } else {
+          enqueue(`${colBase}/${id}`, (b) =>
+            b.set(doc(db, colBase, id), { ...batch.data, updatedAt: new Date().toISOString() }),
+          );
+          imported += 1;
+        }
+        tick();
+        if (writes.size >= BATCH_LIMIT) await flush();
+      }
+    }
+
+    for (const [slug, data] of Object.entries(inputGlobals)) {
+      const path = `globals_${slug}`;
+      const snap = await getDoc(doc(db, path, "value"));
+      if (snap.exists()) {
+        skipped += 1;
+      } else {
+        enqueue(`${path}/value`, (b) =>
+          b.set(doc(db, path, "value"), { ...data, updatedAt: new Date().toISOString() }),
+        );
+        imported += 1;
+      }
+      tick();
+      if (writes.size >= BATCH_LIMIT) await flush();
+    }
+
+    await flush();
+    return { errors, imported, skipped };
   },
 
   async listNotifications(userId: string) {

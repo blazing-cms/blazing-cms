@@ -1,3 +1,10 @@
+import type {
+  ImportBatch,
+  ImportError,
+  ImportProgress,
+  ImportResult,
+} from "@/lib/import-export/types";
+
 import { measureImage, pick, validateMediaFile } from "@/lib/media/validation";
 import {
   emptyPermissions,
@@ -500,6 +507,50 @@ export const mockProvider: DataProvider = {
 
   async getVersion(target: VersionTarget, versionId: string) {
     return getVersions(target).get(versionId) ?? null;
+  },
+
+  async importContent(
+    inputCollections: Record<string, ImportBatch[]>,
+    inputGlobals: Record<string, Record<string, unknown>>,
+    onProgress?: (progress: ImportProgress) => void,
+  ): Promise<ImportResult> {
+    const total =
+      Object.values(inputCollections).reduce((sum, rows) => sum + rows.length, 0) +
+      Object.keys(inputGlobals).length;
+    let done = 0;
+    const tick = () => {
+      done += 1;
+      onProgress?.({ done, total });
+    };
+
+    let imported = 0;
+    let skipped = 0;
+    const errors: ImportError[] = [];
+
+    for (const [collectionName, batches] of Object.entries(inputCollections)) {
+      const col = getCollection(collectionName);
+      for (const batch of batches) {
+        if (col.has(batch.id)) {
+          skipped += 1;
+        } else {
+          col.set(batch.id, { ...batch.data, id: batch.id, updatedAt: new Date().toISOString() });
+          imported += 1;
+        }
+        tick();
+      }
+    }
+
+    for (const [slug, data] of Object.entries(inputGlobals)) {
+      if (globalStore.has(slug)) {
+        skipped += 1;
+      } else {
+        globalStore.set(slug, { ...data, updatedAt: new Date().toISOString() });
+        imported += 1;
+      }
+      tick();
+    }
+
+    return { errors, imported, skipped };
   },
 
   async listNotifications(userId: string) {
