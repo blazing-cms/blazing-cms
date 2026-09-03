@@ -1,5 +1,15 @@
 # @blazing-cms/generators
 
+## 0.3.4
+
+### Patch Changes
+
+- 848c148: chore(deps): upgrade to TypeScript 6 and add explicit `@types/node` typing in tsconfig
+- Updated dependencies [848c148]
+  - @blazing-cms/schema@0.3.4
+  - @blazing-cms/types@0.3.4
+  - @blazing-cms/validation@0.3.4
+
 ## 0.3.3
 
 ### Patch Changes

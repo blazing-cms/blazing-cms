@@ -1,6 +1,6 @@
 {
   "name": "@blazing-cms/cms",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "type": "module",
   "bin": {
     "blaze": "bin/cms.js",
