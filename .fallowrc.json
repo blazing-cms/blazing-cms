@@ -199,6 +199,11 @@
         "files": ["packages/cms/src/admin/routes/schemas/new.tsx"],
         "maxCrap": 50,
         "reason": "schema builder with type selector, slug input, code generation, and clipboard copy"
+      },
+      {
+        "files": ["packages/cms/src/admin/components/field-types/structure-inputs.tsx"],
+        "maxCrap": 1500,
+        "reason": "large switch statement rendering all structural field types (select, array, object, dynamicZone, etc.)"
       }
     ]
   },
