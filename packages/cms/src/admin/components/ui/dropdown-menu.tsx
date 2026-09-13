@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 
 interface DropdownMenuContextValue {
   open: boolean;
+  onOpen: () => void;
   onClose: () => void;
   triggerRef: React.RefObject<HTMLButtonElement | null>;
 }
@@ -29,6 +30,7 @@ function DropdownMenu({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
+  const onOpen = useCallback(() => setOpen(true), []);
   const onClose = useCallback(() => setOpen(false), []);
 
   useEffect(() => {
@@ -51,7 +53,7 @@ function DropdownMenu({ children }: { children: ReactNode }) {
   }, [open]);
 
   return (
-    <DropdownMenuContext.Provider value={{ onClose, open, triggerRef }}>
+    <DropdownMenuContext.Provider value={{ onClose, onOpen, open, triggerRef }}>
       <div className="relative inline-block">{children}</div>
     </DropdownMenuContext.Provider>
   );
@@ -63,7 +65,7 @@ interface DropdownMenuTriggerProps {
 }
 
 function DropdownMenuTrigger({ asChild, children }: DropdownMenuTriggerProps) {
-  const { onClose, open, triggerRef } = useDropdownMenu();
+  const { onClose, onOpen, open, triggerRef } = useDropdownMenu();
 
   if (asChild) {
     const child = children as React.ReactElement;
@@ -71,7 +73,7 @@ function DropdownMenuTrigger({ asChild, children }: DropdownMenuTriggerProps) {
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => (open ? onClose() : undefined)}
+        onClick={() => (open ? onClose() : onOpen())}
         className="inline-flex"
       >
         {child}
@@ -80,7 +82,7 @@ function DropdownMenuTrigger({ asChild, children }: DropdownMenuTriggerProps) {
   }
 
   return (
-    <button ref={triggerRef} type="button" onClick={() => (open ? onClose() : undefined)}>
+    <button ref={triggerRef} type="button" onClick={() => (open ? onClose() : onOpen())}>
       {children}
     </button>
   );
