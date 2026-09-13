@@ -21,6 +21,7 @@
 
     "packages/cms/src/admin/__generated__/schema-registry.ts": ["exports"],
 
+    "packages/cms/src/admin/lib/import-export/types.ts": ["exports", "types"],
     "packages/cms/src/admin/lib/providers/types.ts": ["types"]
   }
 }

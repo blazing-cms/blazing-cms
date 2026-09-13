@@ -41,3 +41,16 @@ export interface ImportBatch {
   id: string;
   data: Record<string, unknown>;
 }
+
+export interface ImportPreviewItem {
+  slug: string;
+  count: number;
+  selected: boolean;
+}
+
+export interface ImportPreview {
+  collections: ImportPreviewItem[];
+  globals: ImportPreviewItem[];
+  format: string;
+  totalEntries: number;
+}
