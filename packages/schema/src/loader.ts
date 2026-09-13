@@ -7,6 +7,19 @@ import type {
 import { readdirSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+
+export function resolveImportPath(filePath: string): string | null {
+  const extensions = ["", ".ts", ".tsx", ".js", "/index.ts", "/index.js"];
+
+  for (const ext of extensions) {
+    const fullPath = filePath + ext;
+    if (existsSync(fullPath)) {
+      return fullPath;
+    }
+  }
+
+  return null;
+}
 export interface SchemaResult {
   collections: CollectionDefinition[];
   globals: GlobalDefinition[];
@@ -51,8 +64,14 @@ export class SchemaLoader {
 }
 
 export async function tryLoadFile<T>(filePath: string): Promise<T[]> {
+  const resolvedPath = resolveImportPath(filePath);
+  if (!resolvedPath) {
+    console.error(`  ✗ Could not resolve: ${filePath}`);
+    return [];
+  }
+
   try {
-    const mod = (await import(filePath)) as Record<string, unknown>;
+    const mod = (await import(resolvedPath)) as Record<string, unknown>;
     const exported = Object.values(mod);
     const results: T[] = [];
     for (const val of exported) {
@@ -62,14 +81,20 @@ export async function tryLoadFile<T>(filePath: string): Promise<T[]> {
     }
     return results;
   } catch (err) {
-    console.error(`Error loading schema file ${filePath}:`, err);
+    console.error(`  ✗ Failed to load ${resolvedPath}:`, err);
     return [];
   }
 }
 
 async function tryLoadFileFresh<T>(filePath: string): Promise<T[]> {
+  const resolvedPath = resolveImportPath(filePath);
+  if (!resolvedPath) {
+    console.error(`  ✗ Could not resolve: ${filePath}`);
+    return [];
+  }
+
   try {
-    const url = pathToFileURL(filePath);
+    const url = pathToFileURL(resolvedPath);
     url.searchParams.set("t", String(Date.now()));
     const mod = (await import(url.href)) as Record<string, unknown>;
     const exported = Object.values(mod);
@@ -81,7 +106,7 @@ async function tryLoadFileFresh<T>(filePath: string): Promise<T[]> {
     }
     return results;
   } catch (err) {
-    console.error(`Error loading schema file ${filePath}:`, err);
+    console.error(`  ✗ Failed to load ${resolvedPath}:`, err);
     return [];
   }
 }
