@@ -204,6 +204,8 @@
         "files": ["packages/cms/src/admin/components/field-types/structure-inputs.tsx"],
         "maxCrap": 1500,
         "maxUnitSize": 400,
+        "maxCyclomatic": 40,
+        "maxCognitive": 35,
         "reason": "large switch statement rendering all structural field types (select, array, object, dynamicZone, etc.)"
       }
     ]
