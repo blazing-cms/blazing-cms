@@ -6,9 +6,9 @@ import { csvHandler } from "./csv";
 import { jsonHandler } from "./json";
 import { xmlHandler } from "./xml";
 
-export type { FormatHandler, SerializedOutput } from "./types";
+export type { FormatHandler } from "./types";
 
-export const handlers: FormatHandler[] = [jsonHandler, csvHandler, xmlHandler];
+const handlers: FormatHandler[] = [jsonHandler, csvHandler, xmlHandler];
 
 /**
  * Auto-detect format from file extension.
@@ -24,7 +24,3 @@ export function detectFormat(filename: string): FormatHandler | null {
 export function getFormatHandler(name: string): FormatHandler | null {
   return handlers.find((h) => h.name === name) ?? null;
 }
-
-export { csvHandler } from "./csv";
-export { jsonHandler } from "./json";
-export { xmlHandler } from "./xml";

@@ -1,7 +1,6 @@
 import type { DataProvider } from "@/lib/providers/types";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { jsonHandler } from "./formats/json";
+import { getFormatHandler } from "./formats";
 import {
   buildMediaMaps,
   toStoragePath,
@@ -11,6 +10,7 @@ import {
 } from "./normalize";
 import {
   FORMAT_VERSION,
+  type ExportFormat,
   type ImportExportCollections,
   type ImportExportDocument,
   type ImportExportEntry,
@@ -22,7 +22,7 @@ const EXPORT_PAGE = 100;
 export interface ExportOptions {
   collections?: string[];
   globals?: string[];
-  format?: "json" | "csv" | "xml";
+  format?: ExportFormat;
 }
 
 async function loadMediaMaps(provider: DataProvider): Promise<MediaMaps> {
@@ -134,9 +134,22 @@ export function assembleDocument(input: AssemblyInput): ImportExportDocument {
   };
 }
 
-/** Trigger a client-side download of the serialized JSON document. */
-export function downloadDocument(doc: ImportExportDocument, filename: string): void {
-  const blob = new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" });
+/** Trigger a client-side download of the serialized document. */
+export function downloadDocument(
+  doc: ImportExportDocument,
+  filename: string,
+  format: ExportFormat = "json",
+): void {
+  const handler = getFormatHandler(format);
+  if (!handler) {
+    throw new Error(`Unsupported format: ${format}`);
+  }
+
+  const output = handler.serialize(doc);
+  const blob =
+    output.content instanceof Blob
+      ? output.content
+      : new Blob([output.content], { type: output.mimeType });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
