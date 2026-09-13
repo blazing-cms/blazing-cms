@@ -2,11 +2,11 @@ import { createRoute } from "@tanstack/react-router";
 import { Construction, Copy, Check } from "lucide-react";
 import { useState } from "react";
 
+import { useToast } from "@/components/toast-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { appLayoutRoute } from "@/routes/app-layout";
-import { useToast } from "@/components/toast-provider";
 
 export const newSchemaRoute = createRoute({
   component: NewSchema,
@@ -24,7 +24,7 @@ function toLabel(slug: string): string {
 }
 
 const collectionTemplate = (slug: string, label: string) =>
-  `import { defineCollection, text, slug, richText, status } from "@blazing-cms/schema";\n\nexport default defineCollection({\n  slug: "${slug}",\n  label: "${label}",\n  admin: {\n    group: "Content",\n  },\n  fields: [\n    text("title", { required: true }),\n    slug("slug", { sourceField: "title" }),\n    richText("content"),\n    status(),\n  ],\n});\n`;
+  `import { defineCollection, text, slug, richText, status } from "@blazing-cms/schema";\n\nexport default defineCollection({\n  slug: "${slug}",\n  label: "${label}",\n  admin: {\n    group: "Content",\n  },\n  fields: [\n    text("title", { validation: { required: true } }),\n    slug("slug", { sourceField: "title" }),\n    richText("content"),\n    status(),\n  ],\n});\n`;
 
 const globalTemplate = (slug: string, label: string) =>
   `import { defineGlobal, text, richText } from "@blazing-cms/schema";\n\nexport default defineGlobal({\n  slug: "${slug}",\n  label: "${label}",\n  fields: [\n    text("title"),\n    richText("content"),\n  ],\n});\n`;
@@ -34,8 +34,8 @@ const componentTemplate = (slug: string, label: string) =>
 
 const templates: Record<SchemaType, (slug: string, label: string) => string> = {
   collection: collectionTemplate,
-  global: globalTemplate,
   component: componentTemplate,
+  global: globalTemplate,
 };
 
 function pluralize(type: SchemaType): string {
@@ -71,10 +71,18 @@ function NewSchema() {
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
-      addToast({ description: "Schema code copied. Paste it into your project.", title: "Copied!", variant: "success" });
+      addToast({
+        description: "Schema code copied. Paste it into your project.",
+        title: "Copied!",
+        variant: "success",
+      });
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      addToast({ description: "Could not access clipboard", title: "Copy failed", variant: "destructive" });
+      addToast({
+        description: "Could not access clipboard",
+        title: "Copy failed",
+        variant: "destructive",
+      });
     }
   }
 
@@ -83,7 +91,8 @@ function NewSchema() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold">New Schema</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Generate a schema file to place in your <code className="rounded bg-secondary px-1 py-0.5">cms/</code> directory.
+          Generate a schema file to place in your{" "}
+          <code className="rounded bg-secondary px-1 py-0.5">cms/</code> directory.
         </p>
       </div>
 
@@ -92,7 +101,11 @@ function NewSchema() {
           <Label htmlFor="type">Type</Label>
           <div className="mt-1 flex gap-2">
             {(["collection", "global", "component"] as SchemaType[]).map((t) => (
-              <Button key={t} variant={type === t ? "default" : "outline"} onClick={() => setType(t)}>
+              <Button
+                key={t}
+                variant={type === t ? "default" : "outline"}
+                onClick={() => setType(t)}
+              >
                 {t.charAt(0).toUpperCase() + t.slice(1)}
               </Button>
             ))}
@@ -121,7 +134,9 @@ function NewSchema() {
               {copied ? "Copied!" : "Copy"}
             </Button>
           </div>
-          <pre className="overflow-x-auto rounded-lg border bg-muted p-4 text-sm leading-relaxed">{code}</pre>
+          <pre className="overflow-x-auto rounded-lg border bg-muted p-4 text-sm leading-relaxed">
+            {code}
+          </pre>
         </div>
       )}
     </div>

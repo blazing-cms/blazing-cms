@@ -237,7 +237,7 @@ export default defineCollection({
     useAsTitle: "title",
   },
   fields: [
-    text("title", { required: true }),
+    text("title", { validation: { required: true } }),
     slug("slug", { source: "title" }),
     richText("content"),
     select("status", {
