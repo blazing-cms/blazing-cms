@@ -63,6 +63,35 @@ function useExport(provider: DataProvider, fields: FieldSources) {
   return { exporting, handleExport, handleExportItem };
 }
 
+function countSelectedItems(p: ImportPreview): number {
+  const collectionCount = p.collections.filter((c) => c.selected).reduce((s, c) => s + c.count, 0);
+  const globalCount = p.globals.filter((g) => g.selected).length;
+  return collectionCount + globalCount;
+}
+
+function togglePreviewItemHelper(
+  prev: ImportPreview | null,
+  type: "collection" | "global",
+  slug: string,
+  selected: boolean,
+): ImportPreview | null {
+  if (!prev) return prev;
+  const key = type === "collection" ? "collections" : "globals";
+  return {
+    ...prev,
+    [key]: prev[key].map((item) => (item.slug === slug ? { ...item, selected } : item)),
+  };
+}
+
+function setAllSelectedHelper(prev: ImportPreview | null, selected: boolean): ImportPreview | null {
+  if (!prev) return prev;
+  return {
+    ...prev,
+    collections: prev.collections.map((c) => ({ ...c, selected })),
+    globals: prev.globals.map((g) => ({ ...g, selected })),
+  };
+}
+
 function useImport(provider: DataProvider, fields: FieldSources) {
   const { addToast } = useToast();
   const queryClient = useQueryClient();
@@ -92,9 +121,7 @@ function useImport(provider: DataProvider, fields: FieldSources) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-
     resetImportState();
-
     try {
       await processImportFile(file);
     } catch (err) {
@@ -104,33 +131,11 @@ function useImport(provider: DataProvider, fields: FieldSources) {
   }
 
   function togglePreviewItem(type: "collection" | "global", slug: string, selected: boolean) {
-    setPreview((prev) => {
-      if (!prev) return prev;
-      const key = type === "collection" ? "collections" : "globals";
-      return {
-        ...prev,
-        [key]: prev[key].map((item) => (item.slug === slug ? { ...item, selected } : item)),
-      };
-    });
+    setPreview((prev) => togglePreviewItemHelper(prev, type, slug, selected));
   }
 
   function setAllSelected(selected: boolean) {
-    setPreview((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        collections: prev.collections.map((c) => ({ ...c, selected })),
-        globals: prev.globals.map((g) => ({ ...g, selected })),
-      };
-    });
-  }
-
-  function countSelectedItems(p: ImportPreview): number {
-    const collectionCount = p.collections
-      .filter((c) => c.selected)
-      .reduce((s, c) => s + c.count, 0);
-    const globalCount = p.globals.filter((g) => g.selected).length;
-    return collectionCount + globalCount;
+    setPreview((prev) => setAllSelectedHelper(prev, selected));
   }
 
   async function invalidateImportQueries(filtered: ImportExportDocument) {
@@ -156,33 +161,23 @@ function useImport(provider: DataProvider, fields: FieldSources) {
     setParsedDoc(null);
   }
 
-  function validateSelection(): boolean {
-    if (!preview) return false;
+  async function confirmImport() {
+    if (!parsedDoc || !preview) return;
     if (countSelectedItems(preview) === 0) {
       addToast({
         description: "No items selected.",
         title: "Import cancelled",
         variant: "destructive",
       });
-      return false;
+      return;
     }
-    return true;
-  }
-
-  async function runImportWorkflow(doc: ImportExportDocument, prev: ImportPreview) {
-    const filtered = filterDocument(doc, prev);
-    await executeImport(filtered);
-  }
-
-  async function confirmImport() {
-    if (!parsedDoc || !preview) return;
-    if (!validateSelection()) return;
 
     setImporting(true);
     resetImportState();
 
     try {
-      await runImportWorkflow(parsedDoc, preview);
+      const filtered = filterDocument(parsedDoc, preview);
+      await executeImport(filtered);
     } catch (err) {
       setError(String(err));
       addToast({ description: String(err), title: "Import failed", variant: "destructive" });
