@@ -32,6 +32,15 @@ export interface DateEntry {
   field: string;
 }
 
+export interface Departments {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  name: string;
+  slug: string;
+  description: string;
+}
+
 export interface DynamicZone {
   id: string;
   createdAt: string;
@@ -64,6 +73,16 @@ export interface NumberEntry {
   field: number;
 }
 
+export interface Pages {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  title: string;
+  slug: string;
+  blocks: string;
+  seo: string;
+}
+
 export interface Posts {
   id: string;
   createdAt: string;
@@ -73,9 +92,12 @@ export interface Posts {
   excerpt: string;
   content: string;
   published: boolean;
+  featured: boolean;
   publishedAt: string;
   category: string;
   author: string;
+  tags: string;
+  seo: string;
 }
 
 export interface Relation {
@@ -108,6 +130,20 @@ export interface Select {
   updatedAt: string;
   title: string;
   field: string;
+}
+
+export interface Teachers {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  name: string;
+  slug: string;
+  bio: string;
+  department: string;
+  published: boolean;
+  featured: boolean;
+  publishedAt: string;
+  seo: string;
 }
 
 export interface TextEntry {

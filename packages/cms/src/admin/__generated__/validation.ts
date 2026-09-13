@@ -32,6 +32,15 @@ export const DateSchema = z.object({
 
 export type DateInput = z.infer<typeof DateSchema>;
 
+export const DepartmentsSchema = z.object({
+  id: z.string().optional(),
+  name: z.string(),
+  slug: z.string().optional(),
+  description: z.string().optional(),
+});
+
+export type DepartmentsInput = z.infer<typeof DepartmentsSchema>;
+
 export const DynamicZoneSchema = z.object({
   id: z.string().optional(),
   title: z.string(),
@@ -64,6 +73,16 @@ export const NumberSchema = z.object({
 
 export type NumberInput = z.infer<typeof NumberSchema>;
 
+export const PagesSchema = z.object({
+  id: z.string().optional(),
+  title: z.string(),
+  slug: z.string().optional(),
+  blocks: z.unknown().optional(),
+  seo: z.unknown().optional(),
+});
+
+export type PagesInput = z.infer<typeof PagesSchema>;
+
 export const PostsSchema = z.object({
   id: z.string().optional(),
   title: z.string(),
@@ -71,9 +90,12 @@ export const PostsSchema = z.object({
   excerpt: z.string().optional(),
   content: z.string().optional(),
   published: z.boolean().optional(),
+  featured: z.boolean().optional(),
   publishedAt: z.string().optional(),
   category: z.string().optional(),
   author: z.string().optional(),
+  tags: z.unknown().optional(),
+  seo: z.unknown().optional(),
 });
 
 export type PostsInput = z.infer<typeof PostsSchema>;
@@ -109,6 +131,20 @@ export const SelectSchema = z.object({
 });
 
 export type SelectInput = z.infer<typeof SelectSchema>;
+
+export const TeachersSchema = z.object({
+  id: z.string().optional(),
+  name: z.string(),
+  slug: z.string().optional(),
+  bio: z.string().optional(),
+  department: z.string().optional(),
+  published: z.boolean().optional(),
+  featured: z.boolean().optional(),
+  publishedAt: z.string().optional(),
+  seo: z.unknown().optional(),
+});
+
+export type TeachersInput = z.infer<typeof TeachersSchema>;
 
 export const TextSchema = z.object({
   id: z.string().optional(),
