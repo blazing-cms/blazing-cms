@@ -20,6 +20,7 @@ import { newRoleRoute } from "@/routes/roles/new";
 import { schemaDetailRoute } from "@/routes/schemas/$type.$slug";
 import { schemasIndexRoute } from "@/routes/schemas/index";
 import { newSchemaRoute } from "@/routes/schemas/new";
+import { contentToolsRoute } from "@/routes/settings/content";
 import { settingsIndexRoute } from "@/routes/settings/index";
 import { pluginsRoute } from "@/routes/settings/plugins";
 import { userDetailRoute } from "@/routes/users/$id";
@@ -53,5 +54,6 @@ export const routeTree = rootRoute.addChildren([
     schemaDetailRoute,
     settingsIndexRoute,
     pluginsRoute,
+    contentToolsRoute,
   ]),
 ]);

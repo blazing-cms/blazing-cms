@@ -1,6 +1,7 @@
+import type { ImportBatch, ImportProgress, ImportResult } from "@/lib/import-export/types";
+
 export type QueryOperator =
   "==" | "!=" | ">" | ">=" | "<" | "<=" | "in" | "not-in" | "array-contains" | "array-contains-any";
-
 export interface QueryFilterValue {
   op: QueryOperator;
   value: unknown;
@@ -138,4 +139,10 @@ export interface DataProvider {
   uploadMedia(file: File, options?: MediaUploadOptions): Promise<MediaUploadResult>;
   replaceMedia(id: string, file: File, options?: MediaUploadOptions): Promise<{ url: string }>;
   deleteMedia(id: string): Promise<void>;
+
+  importContent(
+    collections: Record<string, ImportBatch[]>,
+    globals: Record<string, Record<string, unknown>>,
+    onProgress?: (progress: ImportProgress) => void,
+  ): Promise<ImportResult>;
 }
