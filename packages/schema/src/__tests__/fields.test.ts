@@ -1,17 +1,42 @@
 import { describe, it, expect } from "vitest";
+
 import {
-  text, textarea, number, boolean, date, datetime,
-  email, password, url, json, richText, markdown, code, color,
-  media, upload, select, multiSelect, radio, checkbox,
-  relation, component, dynamicZone, array, object, tabs,
-  group, repeater, slug,
+  text,
+  textarea,
+  number,
+  boolean,
+  date,
+  datetime,
+  email,
+  password,
+  url,
+  json,
+  richText,
+  markdown,
+  code,
+  color,
+  media,
+  upload,
+  select,
+  multiSelect,
+  radio,
+  checkbox,
+  relation,
+  component,
+  dynamicZone,
+  array,
+  object,
+  tabs,
+  group,
+  repeater,
+  slug,
 } from "../fields.js";
 
 describe("field helpers", () => {
   describe("scalar fields", () => {
     it("text returns TextField", () => {
       const f = text("title", { label: "Title" });
-      expect(f).toEqual({ name: "title", type: "text", label: "Title" });
+      expect(f).toEqual({ label: "Title", name: "title", type: "text" });
     });
 
     it("textarea returns TextareaField", () => {
@@ -68,6 +93,12 @@ describe("field helpers", () => {
       expect(f.type).toBe("richText");
     });
 
+    it("richText accepts toolbar preset", () => {
+      const f = richText("content", { toolbar: "minimal" });
+      expect(f.type).toBe("richText");
+      expect(f.toolbar).toBe("minimal");
+    });
+
     it("markdown returns MarkdownField", () => {
       const f = markdown("body");
       expect(f.type).toBe("markdown");
@@ -93,7 +124,7 @@ describe("field helpers", () => {
 
   describe("media fields", () => {
     it("media returns MediaField", () => {
-      const f = media("image", { multiple: true, allowedTypes: ["image", "video"] });
+      const f = media("image", { allowedTypes: ["image", "video"], multiple: true });
       expect(f.type).toBe("media");
       expect(f.multiple).toBe(true);
       expect(f.allowedTypes).toEqual(["image", "video"]);
@@ -136,7 +167,7 @@ describe("field helpers", () => {
 
   describe("relational fields", () => {
     it("relation returns RelationField with to and kind", () => {
-      const f = relation("author", { to: "users", kind: "manyToOne" });
+      const f = relation("author", { kind: "manyToOne", to: "users" });
       expect(f.type).toBe("relation");
       expect(f.to).toBe("users");
       expect(f.kind).toBe("manyToOne");
@@ -191,8 +222,8 @@ describe("field helpers", () => {
     it("tabs returns TabsField", () => {
       const f = tabs("settings", {
         tabs: [
-          { label: "General", fields: [text("name")] },
-          { label: "SEO", fields: [text("title")] },
+          { fields: [text("name")], label: "General" },
+          { fields: [text("title")], label: "SEO" },
         ],
       });
       expect(f.type).toBe("tabs");

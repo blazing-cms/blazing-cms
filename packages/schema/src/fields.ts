@@ -75,7 +75,10 @@ export function json(name: string, options?: FieldOptions): JsonField {
   return { name, type: "json", ...options };
 }
 
-export function richText(name: string, options?: FieldOptions): RichTextField {
+export function richText(
+  name: string,
+  options?: FieldOptions & { toolbar?: "minimal" | "basic" | "full" },
+): RichTextField {
   return { name, type: "richText", ...options };
 }
 
