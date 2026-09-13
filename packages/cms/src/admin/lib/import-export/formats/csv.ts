@@ -2,20 +2,35 @@ import type { FormatHandler, SerializedOutput } from "./types";
 
 import { FORMAT_VERSION, type ImportExportDocument, type ImportExportEntry } from "../types";
 
+function parseCSVRow(line: string, headers: string[]): ImportExportEntry {
+  const values = parseCSVLine(line);
+  const entry: ImportExportEntry = { id: "" };
+
+  for (let j = 0; j < headers.length; j++) {
+    const header = headers[j];
+    if (header === undefined) continue;
+    const value = values[j] ?? "";
+    if (header === "id") {
+      entry.id = value;
+    } else {
+      entry[header] = coerceValue(value);
+    }
+  }
+
+  return entry;
+}
+
 /**
  * Parse a CSV file into an ImportExportDocument.
  * Only supports flat (scalar) fields. Nested fields are skipped with warnings.
  */
 function parseCSV(text: string): { entries: ImportExportEntry[]; warnings: string[] } {
   const lines = text.split(/\r?\n/).filter((line) => line.trim() !== "");
-  if (lines.length < 2) {
-    return { entries: [], warnings: [] };
-  }
+  if (lines.length < 2) return { entries: [], warnings: [] };
 
   const headerLine = lines[0];
-  if (!headerLine) {
-    return { entries: [], warnings: [] };
-  }
+  if (!headerLine) return { entries: [], warnings: [] };
+
   const headers = parseCSVLine(headerLine);
   const entries: ImportExportEntry[] = [];
   const warnings: string[] = [];
@@ -23,26 +38,12 @@ function parseCSV(text: string): { entries: ImportExportEntry[]; warnings: strin
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i];
     if (!line) continue;
-    const values = parseCSVLine(line);
-    const entry: ImportExportEntry = { id: "" };
 
-    for (let j = 0; j < headers.length; j++) {
-      const header = headers[j];
-      if (header === undefined) continue;
-      const value = values[j] ?? "";
-
-      if (header === "id") {
-        entry.id = value;
-      } else {
-        entry[header] = coerceValue(value);
-      }
-    }
-
+    const entry = parseCSVRow(line, headers);
     if (!entry.id) {
       warnings.push(`Row ${i + 1}: missing id, skipping`);
       continue;
     }
-
     entries.push(entry);
   }
 

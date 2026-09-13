@@ -3,12 +3,7 @@ import type { FormatHandler, SerializedOutput } from "./types";
 
 import { FORMAT_VERSION } from "../types";
 
-function normalizeDocument(raw: unknown): ImportExportDocument {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
-    throw new Error("The import file has an invalid structure.");
-  }
-
-  const source = raw as Record<string, unknown>;
+function validateFormatVersion(source: Record<string, unknown>): void {
   if (typeof source.formatVersion !== "number") {
     throw new Error("The import file is missing a formatVersion.");
   }
@@ -17,9 +12,9 @@ function normalizeDocument(raw: unknown): ImportExportDocument {
       `This file uses format version ${source.formatVersion}, which is newer than supported (${FORMAT_VERSION}).`,
     );
   }
+}
 
-  const collections = source.collections ?? {};
-  const globals = source.globals ?? {};
+function validateCollections(collections: unknown): void {
   if (!isStringRecordMap(collections)) {
     throw new Error("The import file's `collections` field is invalid.");
   }
@@ -28,6 +23,20 @@ function normalizeDocument(raw: unknown): ImportExportDocument {
       throw new Error(`Collection "${slug}" must contain an array of entries.`);
     }
   }
+}
+
+function normalizeDocument(raw: unknown): ImportExportDocument {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new Error("The import file has an invalid structure.");
+  }
+
+  const source = raw as Record<string, unknown>;
+  validateFormatVersion(source);
+
+  const collections = source.collections ?? {};
+  const globals = source.globals ?? {};
+  validateCollections(collections);
+
   if (!isStringRecordMap(globals)) {
     throw new Error("The import file's `globals` field is invalid.");
   }
