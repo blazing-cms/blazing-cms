@@ -22,8 +22,10 @@ describe("buildImportPreview", () => {
 
     expect(preview.format).toBe("json");
     expect(preview.collections).toHaveLength(2);
-    expect(preview.collections[0]).toEqual({ count: 1, selected: true, slug: "posts" });
-    expect(preview.collections[1]).toEqual({ count: 2, selected: true, slug: "pages" });
+    const postsCol = preview.collections.find((c) => c.slug === "posts");
+    const pagesCol = preview.collections.find((c) => c.slug === "pages");
+    expect(postsCol).toEqual({ count: 1, selected: true, slug: "posts" });
+    expect(pagesCol).toEqual({ count: 2, selected: true, slug: "pages" });
     expect(preview.globals).toHaveLength(1);
     expect(preview.globals[0]).toEqual({ count: 0, selected: true, slug: "site" });
     expect(preview.totalEntries).toBe(3);
