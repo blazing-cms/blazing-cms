@@ -205,6 +205,8 @@ export interface SlugField extends FieldBase {
   unique?: boolean | undefined;
 }
 
+export type SelectOption = { label: string; value: string };
+
 export type FieldDefinition =
   | TextField
   | TextareaField

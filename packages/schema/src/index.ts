@@ -41,6 +41,7 @@ export {
   GLOBAL_SCOPED_CAPABILITIES,
   type RuntimeCapabilityName,
 } from "./capabilities.js";
+export type { SelectOption } from "@blazing-cms/types";
 export type {
   TextField,
   TextareaField,

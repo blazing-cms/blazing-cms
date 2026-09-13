@@ -30,10 +30,10 @@ import type {
   SlugField,
   FieldDefinition,
   FieldBase,
+  SelectOption,
 } from "@blazing-cms/types";
 
 type FieldOptions = Partial<Omit<FieldBase, "name" | "type">>;
-type SelectOption = { label: string; value: string };
 
 export function text(name: string, options?: FieldOptions): TextField {
   return { name, type: "text", ...options };
