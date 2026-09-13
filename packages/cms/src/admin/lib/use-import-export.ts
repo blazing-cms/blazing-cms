@@ -86,9 +86,9 @@ function useImport(provider: DataProvider, fields: FieldSources) {
 
     try {
       const doc = await parseImportFile(file);
-      const format = detectFormat(file.name);
+      const formatName = detectFormat(file.name)?.name ?? "unknown";
       setParsedDoc(doc);
-      setPreview(buildImportPreview(doc, format?.name ?? "unknown"));
+      setPreview(buildImportPreview(doc, formatName));
     } catch (err) {
       setError(String(err));
       addToast({ description: String(err), title: "Import failed", variant: "destructive" });
@@ -136,6 +136,18 @@ function useImport(provider: DataProvider, fields: FieldSources) {
     await queryClient.invalidateQueries({ queryKey: ["analytics"] });
   }
 
+  async function executeImport(filtered: ImportExportDocument) {
+    const res = await importDocument(provider, filtered, fields, (p) => setProgress(p));
+    setResult(res);
+    await invalidateImportQueries(filtered);
+    addToast({
+      description: `Imported ${res.imported} item(s), skipped ${res.skipped}.`,
+      title: "Import complete",
+    });
+    setPreview(null);
+    setParsedDoc(null);
+  }
+
   async function confirmImport() {
     if (!parsedDoc || !preview) return;
 
@@ -155,18 +167,7 @@ function useImport(provider: DataProvider, fields: FieldSources) {
 
     try {
       const filtered = filterDocument(parsedDoc, preview);
-      const res = await importDocument(provider, filtered, fields, (p) => setProgress(p));
-      setResult(res);
-
-      await invalidateImportQueries(filtered);
-
-      addToast({
-        description: `Imported ${res.imported} item(s), skipped ${res.skipped}.`,
-        title: "Import complete",
-      });
-
-      setPreview(null);
-      setParsedDoc(null);
+      await executeImport(filtered);
     } catch (err) {
       setError(String(err));
       addToast({ description: String(err), title: "Import failed", variant: "destructive" });
