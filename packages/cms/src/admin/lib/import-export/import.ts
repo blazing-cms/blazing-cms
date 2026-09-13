@@ -129,3 +129,40 @@ export async function importDocument(
     skipped: result.skipped + prepared.preSkipped,
   };
 }
+
+/**
+ * Filter a document to only include selected collections and globals.
+ */
+export function filterDocument(
+  doc: ImportExportDocument,
+  preview: {
+    collections: Array<{ slug: string; selected: boolean }>;
+    globals: Array<{ slug: string; selected: boolean }>;
+  },
+): ImportExportDocument {
+  const selectedCollectionSlugs = new Set(
+    preview.collections.filter((c) => c.selected).map((c) => c.slug),
+  );
+  const selectedGlobalSlugs = new Set(preview.globals.filter((g) => g.selected).map((g) => g.slug));
+
+  const collections: ImportExportDocument["collections"] = {};
+  for (const [slug, entries] of Object.entries(doc.collections)) {
+    if (selectedCollectionSlugs.has(slug)) {
+      collections[slug] = entries;
+    }
+  }
+
+  const globals: ImportExportDocument["globals"] = {};
+  for (const [slug, data] of Object.entries(doc.globals)) {
+    if (selectedGlobalSlugs.has(slug)) {
+      globals[slug] = data;
+    }
+  }
+
+  return {
+    collections,
+    exportedAt: doc.exportedAt,
+    formatVersion: doc.formatVersion,
+    globals,
+  };
+}
