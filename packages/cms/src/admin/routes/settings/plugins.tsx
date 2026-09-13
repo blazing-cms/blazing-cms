@@ -1,14 +1,5 @@
 import { createRoute } from "@tanstack/react-router";
-import {
-  Puzzle,
-  ExternalLink,
-  Search,
-  Palette,
-  Shield,
-  Globe,
-  Database,
-  Image,
-} from "lucide-react";
+import { Puzzle, ExternalLink, Search, Palette, Shield, Globe, Image } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -61,12 +52,6 @@ const KNOWN_PLUGINS: PluginInfo[] = [
     name: "Themes",
     status: "coming-soon",
   },
-  {
-    description: "Bulk import and export content via CSV, JSON, or XML.",
-    icon: Database,
-    name: "Import/Export",
-    status: "coming-soon",
-  },
 ];
 
 function PluginsSettings() {
@@ -100,8 +85,8 @@ function PluginsSettings() {
             <Puzzle className="h-10 w-10 text-muted-foreground" />
             <CardTitle className="text-base">Plugin SDK</CardTitle>
             <CardDescription className="max-w-sm">
-              Blazing CMS plugins are npm packages that register routes, extend the sidebar, and hook
-              into content operations.
+              Blazing CMS plugins are npm packages that register routes, extend the sidebar, and
+              hook into content operations.
             </CardDescription>
             <Button variant="outline" size="sm" disabled>
               <ExternalLink className="mr-1 h-4 w-4" /> Documentation
