@@ -29,7 +29,7 @@ describe("SchemaLoader", () => {
     vi.mocked(existsSync).mockReturnValue(false);
     const loader = new SchemaLoader("/nonexistent");
     const result = await loader.load();
-    expect(result).toEqual({ collections: [], components: [], globals: [] });
+    expect(result).toEqual({ collections: [], components: [], errors: [], globals: [] });
     expect(readdirSync).not.toHaveBeenCalled();
   });
 
@@ -54,8 +54,9 @@ describe("tryLoadFile", () => {
     }));
     const { tryLoadFile } = await import("../loader.js");
     const result = await tryLoadFile("/path/to/valid.ts");
-    expect(result).toHaveLength(1);
-    expect(result[0]).toHaveProperty("slug", "posts");
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toHaveProperty("slug", "posts");
+    expect(result.errors).toHaveLength(0);
   });
 
   it("filters out exports without slug", async () => {
@@ -65,12 +66,15 @@ describe("tryLoadFile", () => {
     }));
     const { tryLoadFile } = await import("../loader.js");
     const result = await tryLoadFile("/path/to/mixed.ts");
-    expect(result).toHaveLength(1);
+    expect(result.items).toHaveLength(1);
+    expect(result.errors).toHaveLength(0);
   });
 
-  it("returns empty array when import fails", async () => {
+  it("returns empty items with error when import fails", async () => {
     const { tryLoadFile } = await import("../loader.js");
     const result = await tryLoadFile("/nonexistent/file.ts");
-    expect(result).toEqual([]);
+    expect(result.items).toEqual([]);
+    expect(result.errors).toHaveLength(1);
+    expect(result.errors[0]).toContain("nonexistent/file.ts");
   });
 });
