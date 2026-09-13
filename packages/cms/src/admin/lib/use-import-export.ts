@@ -75,20 +75,28 @@ function useImport(provider: DataProvider, fields: FieldSources) {
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [parsedDoc, setParsedDoc] = useState<ImportExportDocument | null>(null);
 
+  function resetImportState() {
+    setError(null);
+    setResult(null);
+    setProgress(null);
+  }
+
+  async function processImportFile(file: File) {
+    const doc = await parseImportFile(file);
+    const formatName = detectFormat(file.name)?.name ?? "unknown";
+    setParsedDoc(doc);
+    setPreview(buildImportPreview(doc, formatName));
+  }
+
   async function handleImportFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
 
-    setError(null);
-    setResult(null);
-    setProgress(null);
+    resetImportState();
 
     try {
-      const doc = await parseImportFile(file);
-      const formatName = detectFormat(file.name)?.name ?? "unknown";
-      setParsedDoc(doc);
-      setPreview(buildImportPreview(doc, formatName));
+      await processImportFile(file);
     } catch (err) {
       setError(String(err));
       addToast({ description: String(err), title: "Import failed", variant: "destructive" });
@@ -148,26 +156,33 @@ function useImport(provider: DataProvider, fields: FieldSources) {
     setParsedDoc(null);
   }
 
-  async function confirmImport() {
-    if (!parsedDoc || !preview) return;
-
+  function validateSelection(): boolean {
+    if (!preview) return false;
     if (countSelectedItems(preview) === 0) {
       addToast({
         description: "No items selected.",
         title: "Import cancelled",
         variant: "destructive",
       });
-      return;
+      return false;
     }
+    return true;
+  }
+
+  async function runImportWorkflow(doc: ImportExportDocument, prev: ImportPreview) {
+    const filtered = filterDocument(doc, prev);
+    await executeImport(filtered);
+  }
+
+  async function confirmImport() {
+    if (!parsedDoc || !preview) return;
+    if (!validateSelection()) return;
 
     setImporting(true);
-    setProgress(null);
-    setResult(null);
-    setError(null);
+    resetImportState();
 
     try {
-      const filtered = filterDocument(parsedDoc, preview);
-      await executeImport(filtered);
+      await runImportWorkflow(parsedDoc, preview);
     } catch (err) {
       setError(String(err));
       addToast({ description: String(err), title: "Import failed", variant: "destructive" });

@@ -110,22 +110,22 @@ function transformDynamicZone(
   });
 }
 
-/**
- * Transform every `media`/`upload` value in `value` using `rewrite`, recursing
- * through structural/composite fields according to the field tree.
- */
-function transformValue(
+function handleArrayType(
   value: unknown,
   field: FieldDefinition,
   sources: FieldSources,
   rewrite: (original: unknown) => unknown,
 ): unknown {
-  if (isMediaField(field)) return rewrite(value);
+  return Array.isArray(value) ? transformArray(value, field, sources, rewrite) : value;
+}
 
+function handleCompositeType(
+  value: unknown,
+  field: FieldDefinition,
+  sources: FieldSources,
+  rewrite: (original: unknown) => unknown,
+): unknown {
   switch (field.type) {
-    case "array":
-    case "repeater":
-      return Array.isArray(value) ? transformArray(value, field, sources, rewrite) : value;
     case "object":
     case "group":
       return transformRecord(value, getSubFields(field), sources, rewrite);
@@ -138,6 +138,22 @@ function transformValue(
     default:
       return value;
   }
+}
+
+/**
+ * Transform every `media`/`upload` value in `value` using `rewrite`, recursing
+ * through structural/composite fields according to the field tree.
+ */
+function transformValue(
+  value: unknown,
+  field: FieldDefinition,
+  sources: FieldSources,
+  rewrite: (original: unknown) => unknown,
+): unknown {
+  if (isMediaField(field)) return rewrite(value);
+  if (field.type === "array" || field.type === "repeater")
+    return handleArrayType(value, field, sources, rewrite);
+  return handleCompositeType(value, field, sources, rewrite);
 }
 
 function transformRecord(
