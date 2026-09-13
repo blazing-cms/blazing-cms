@@ -1,5 +1,14 @@
 # @blazing-cms/cms
 
+## 0.3.6
+
+### Patch Changes
+
+- 5dce957: Slug field now autogenerates value from source field when empty. When the source field (e.g., title) changes and the slug field is empty, a URL-friendly slug is automatically generated. Manual slugs are preserved.
+  - @blazing-cms/generators@0.3.6
+  - @blazing-cms/schema@0.3.6
+  - @blazing-cms/types@0.3.6
+
 ## 0.3.5
 
 ### Minor Changes

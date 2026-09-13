@@ -1,5 +1,11 @@
 # @blazing-cms/sdk
 
+## 0.3.6
+
+### Patch Changes
+
+- @blazing-cms/types@0.3.6
+
 ## 0.3.5
 
 ### Minor Changes
