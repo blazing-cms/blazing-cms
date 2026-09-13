@@ -1,5 +1,7 @@
 import type { DataProvider } from "@/lib/providers/types";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { jsonHandler } from "./formats/json";
 import {
   buildMediaMaps,
   toStoragePath,
@@ -20,6 +22,7 @@ const EXPORT_PAGE = 100;
 export interface ExportOptions {
   collections?: string[];
   globals?: string[];
+  format?: "json" | "csv" | "xml";
 }
 
 async function loadMediaMaps(provider: DataProvider): Promise<MediaMaps> {
