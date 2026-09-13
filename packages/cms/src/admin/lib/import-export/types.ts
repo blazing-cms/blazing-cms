@@ -1,5 +1,7 @@
 export const FORMAT_VERSION = 1;
 
+export type ExportFormat = "json" | "csv" | "xml";
+
 export interface ImportExportEntry {
   id: string;
   [key: string]: unknown;
