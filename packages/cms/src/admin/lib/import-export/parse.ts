@@ -1,4 +1,6 @@
-import { jsonHandler } from "./formats/json";
+import type { ImportExportDocument } from "./types";
+
+import { detectFormat } from "./formats";
 
 export class ParseError extends Error {
   constructor(message: string) {
@@ -9,9 +11,15 @@ export class ParseError extends Error {
 
 /** Read a File and parse it into a structurally-valid import document. */
 export async function parseImportFile(file: File): Promise<ImportExportDocument> {
+  const handler = detectFormat(file.name);
+  if (!handler) {
+    throw new ParseError(`Unsupported file format. Supported: .json, .csv, .xml`);
+  }
+
   try {
-    return await jsonHandler.parse(file);
+    return await handler.parse(file);
   } catch (err) {
+    if (err instanceof ParseError) throw err;
     if (err instanceof Error) {
       throw new ParseError(err.message);
     }
@@ -23,6 +31,3 @@ export async function parseImportText(text: string): Promise<ImportExportDocumen
   const file = new File([text], "import.json", { type: "application/json" });
   return parseImportFile(file);
 }
-
-// Re-export types for backward compatibility
-import type { ImportExportDocument } from "./types";
