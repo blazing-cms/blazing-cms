@@ -5,6 +5,7 @@ import {
   slug,
   relation,
   boolean,
+  datetime,
   component,
 } from "@blazing-cms/schema";
 
@@ -21,6 +22,7 @@ export default defineCollection({
     }),
     boolean("published", { defaultValue: false, label: "Published" }),
     boolean("featured", { defaultValue: false, label: "Featured" }),
+    datetime("publishedAt", { label: "Published At" }),
     component("seo", { component: "seo-meta" }),
   ],
   labels: { plural: "Teachers", singular: "Teacher" },
