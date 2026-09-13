@@ -111,14 +111,29 @@ export function useImportExport(provider: DataProvider, fields: FieldSources) {
     });
   }
 
+  function countSelectedItems(p: ImportPreview): number {
+    const collectionCount = p.collections
+      .filter((c) => c.selected)
+      .reduce((s, c) => s + c.count, 0);
+    const globalCount = p.globals.filter((g) => g.selected).length;
+    return collectionCount + globalCount;
+  }
+
+  async function invalidateImportQueries(filtered: ImportExportDocument) {
+    for (const slug of Object.keys(filtered.collections)) {
+      await queryClient.invalidateQueries({ queryKey: ["collection", slug] });
+    }
+    for (const slug of Object.keys(filtered.globals)) {
+      await queryClient.invalidateQueries({ queryKey: ["global", slug] });
+    }
+    await queryClient.invalidateQueries({ queryKey: ["media"] });
+    await queryClient.invalidateQueries({ queryKey: ["analytics"] });
+  }
+
   async function confirmImport() {
     if (!parsedDoc || !preview) return;
 
-    const selectedCount =
-      preview.collections.filter((c) => c.selected).reduce((s, c) => s + c.count, 0) +
-      preview.globals.filter((g) => g.selected).length;
-
-    if (selectedCount === 0) {
+    if (countSelectedItems(preview) === 0) {
       addToast({
         description: "No items selected.",
         title: "Import cancelled",
@@ -137,14 +152,7 @@ export function useImportExport(provider: DataProvider, fields: FieldSources) {
       const res = await importDocument(provider, filtered, fields, (p) => setProgress(p));
       setResult(res);
 
-      for (const slug of Object.keys(filtered.collections)) {
-        await queryClient.invalidateQueries({ queryKey: ["collection", slug] });
-      }
-      for (const slug of Object.keys(filtered.globals)) {
-        await queryClient.invalidateQueries({ queryKey: ["global", slug] });
-      }
-      await queryClient.invalidateQueries({ queryKey: ["media"] });
-      await queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      await invalidateImportQueries(filtered);
 
       addToast({
         description: `Imported ${res.imported} item(s), skipped ${res.skipped}.`,

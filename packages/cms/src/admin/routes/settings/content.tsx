@@ -1,6 +1,6 @@
 /* eslint-disable max-lines -- Content Tools page with export/import/preview UI */
 import { createRoute } from "@tanstack/react-router";
-import { Download, Upload, FileJson, ChevronDown, Globe, X } from "lucide-react";
+import { Download, Upload, FileJson, ChevronDown, Globe, X, type LucideIcon } from "lucide-react";
 
 import { collections, components, globals } from "@/__generated__/schema-registry";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -188,6 +188,90 @@ function ImportResultCard({
   );
 }
 
+function ExportCard({
+  description,
+  disabled,
+  icon: Icon,
+  items,
+  title,
+}: {
+  title: string;
+  icon: LucideIcon;
+  description: string;
+  disabled: boolean;
+  items: Array<{ label: string; onClick: () => void }>;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Icon className="h-5 w-5" /> {title}
+        </CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ExportDropdown disabled={disabled} items={items} icon={Icon} label={title} />
+      </CardContent>
+    </Card>
+  );
+}
+
+function ImportCard({
+  fileInputRef,
+  handleImportFile,
+  importing,
+  preview,
+}: {
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  importing: boolean;
+  preview: unknown;
+  handleImportFile: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Upload className="h-5 w-5" /> Import
+        </CardTitle>
+        <CardDescription>
+          Restore from an exported file. Select which items to import.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json,.csv,.xml,application/json,text/csv,application/xml"
+          className="hidden"
+          onChange={(e) => void handleImportFile(e)}
+        />
+        <Button
+          variant="outline"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={importing || !!preview}
+        >
+          <FileJson className="mr-1 h-4 w-4" />
+          {importing ? "Importing..." : "Choose file to import"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ImportProgressBar({ percent }: { percent: number }) {
+  return (
+    <div className="mt-6">
+      <div className="mb-2 flex justify-between text-sm text-muted-foreground">
+        <span>Importing...</span>
+        <span>{percent}%</span>
+      </div>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div className="h-full bg-primary transition-all" style={{ width: `${percent}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function ContentTools() {
   const provider = useDataProvider();
   const fields = buildFieldSources({ collections, components, globals });
@@ -237,89 +321,36 @@ function ContentTools() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Download className="h-5 w-5" /> Export
-            </CardTitle>
-            <CardDescription>
-              Downloads a file containing every collection entry and global.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ExportDropdown
-              disabled={exporting}
-              items={exportAllItems}
-              icon={Download}
-              label={exporting ? "Exporting..." : "Export all content"}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5" /> Import
-            </CardTitle>
-            <CardDescription>
-              Restore from an exported file. Select which items to import.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json,.csv,.xml,application/json,text/csv,application/xml"
-              className="hidden"
-              onChange={(e) => void handleImportFile(e)}
-            />
-            <Button
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={importing || !!preview}
-            >
-              <FileJson className="mr-1 h-4 w-4" />
-              {importing ? "Importing..." : "Choose file to import"}
-            </Button>
-          </CardContent>
-        </Card>
-
+        <ExportCard
+          title="Export"
+          icon={Download}
+          description="Downloads a file containing every collection entry and global."
+          disabled={exporting}
+          items={exportAllItems}
+        />
+        <ImportCard
+          fileInputRef={fileInputRef}
+          importing={importing}
+          preview={preview}
+          handleImportFile={handleImportFile}
+        />
         {globalSlugs.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5" /> Export Globals
-              </CardTitle>
-              <CardDescription>Export individual global settings.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ExportDropdown
-                disabled={exporting}
-                items={globalItems}
-                icon={Globe}
-                label="Choose global"
-              />
-            </CardContent>
-          </Card>
+          <ExportCard
+            title="Export Globals"
+            icon={Globe}
+            description="Export individual global settings."
+            disabled={exporting}
+            items={globalItems}
+          />
         )}
-
         {collectionSlugs.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileJson className="h-5 w-5" /> Export Collections
-              </CardTitle>
-              <CardDescription>Export individual collection entries.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ExportDropdown
-                disabled={exporting}
-                items={collectionItems}
-                icon={FileJson}
-                label="Choose collection"
-              />
-            </CardContent>
-          </Card>
+          <ExportCard
+            title="Export Collections"
+            icon={FileJson}
+            description="Export individual collection entries."
+            disabled={exporting}
+            items={collectionItems}
+          />
         )}
       </div>
 
@@ -336,17 +367,7 @@ function ContentTools() {
         />
       )}
 
-      {importing && percent > 0 && (
-        <div className="mt-6">
-          <div className="mb-2 flex justify-between text-sm text-muted-foreground">
-            <span>Importing...</span>
-            <span>{percent}%</span>
-          </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-            <div className="h-full bg-primary transition-all" style={{ width: `${percent}%` }} />
-          </div>
-        </div>
-      )}
+      {importing && percent > 0 && <ImportProgressBar percent={percent} />}
 
       {error && (
         <Alert variant="destructive" className="mt-6">
