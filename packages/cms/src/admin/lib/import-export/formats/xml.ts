@@ -37,50 +37,44 @@ function parseXMLValue(element: Element): unknown {
   return parseXMLElement(element);
 }
 
-/**
- * Parse XML into ImportExportDocument.
- */
-function parseXMLDocument(root: Element): ImportExportDocument {
-  const formatVersion = parseInt(root.getAttribute("formatVersion") || "1", 10);
-  const exportedAt = root.getAttribute("exportedAt") || new Date().toISOString();
-
-  const collectionsElement = root.querySelector("collections");
-  const globalsElement = root.querySelector("globals");
-
+function parseCollections(collectionsElement: Element | null): ImportExportDocument["collections"] {
   const collections: ImportExportDocument["collections"] = {};
-  if (collectionsElement) {
-    for (const collectionEl of Array.from(collectionsElement.querySelectorAll("collection"))) {
-      const slug = collectionEl.getAttribute("slug") || "";
-      if (!slug) continue;
+  if (!collectionsElement) return collections;
 
-      const entries: ImportExportEntry[] = [];
-      for (const entryEl of Array.from(collectionEl.querySelectorAll("entry"))) {
-        const id = entryEl.getAttribute("id") || "";
-        if (!id) continue;
+  for (const collectionEl of Array.from(collectionsElement.querySelectorAll("collection"))) {
+    const slug = collectionEl.getAttribute("slug") || "";
+    if (!slug) continue;
 
-        const data = parseXMLElement(entryEl);
-        entries.push({ id, ...data });
-      }
-
-      collections[slug] = entries;
+    const entries: ImportExportEntry[] = [];
+    for (const entryEl of Array.from(collectionEl.querySelectorAll("entry"))) {
+      const id = entryEl.getAttribute("id") || "";
+      if (!id) continue;
+      entries.push({ id, ...parseXMLElement(entryEl) });
     }
-  }
 
+    collections[slug] = entries;
+  }
+  return collections;
+}
+
+function parseGlobals(globalsElement: Element | null): ImportExportDocument["globals"] {
   const globals: ImportExportDocument["globals"] = {};
-  if (globalsElement) {
-    for (const globalEl of Array.from(globalsElement.querySelectorAll("global"))) {
-      const slug = globalEl.getAttribute("slug") || "";
-      if (!slug) continue;
+  if (!globalsElement) return globals;
 
-      globals[slug] = parseXMLElement(globalEl);
-    }
+  for (const globalEl of Array.from(globalsElement.querySelectorAll("global"))) {
+    const slug = globalEl.getAttribute("slug") || "";
+    if (!slug) continue;
+    globals[slug] = parseXMLElement(globalEl);
   }
+  return globals;
+}
 
+function parseXMLDocument(root: Element): ImportExportDocument {
   return {
-    collections,
-    exportedAt,
-    formatVersion,
-    globals,
+    collections: parseCollections(root.querySelector("collections")),
+    exportedAt: root.getAttribute("exportedAt") || new Date().toISOString(),
+    formatVersion: parseInt(root.getAttribute("formatVersion") || "1", 10),
+    globals: parseGlobals(root.querySelector("globals")),
   };
 }
 

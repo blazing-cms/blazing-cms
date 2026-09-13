@@ -56,6 +56,60 @@ function isMediaField(field: FieldDefinition): boolean {
   return field.type === "media" || field.type === "upload";
 }
 
+const getSubFields = (field: FieldDefinition): FieldDefinition[] =>
+  (field as { fields?: FieldDefinition[] }).fields ?? [];
+
+function transformArray(
+  value: unknown[],
+  field: FieldDefinition,
+  sources: FieldSources,
+  rewrite: (original: unknown) => unknown,
+): unknown[] {
+  const subFields = getSubFields(field);
+  return value.map((item) => transformRecord(item, subFields, sources, rewrite));
+}
+
+function transformTabs(
+  value: unknown,
+  field: FieldDefinition,
+  sources: FieldSources,
+  rewrite: (original: unknown) => unknown,
+): unknown {
+  const tabs = (field as { tabs?: Array<{ fields: FieldDefinition[] }> }).tabs ?? [];
+  const flat = tabs.flatMap((tab) => tab.fields ?? []);
+  return transformRecord(value, flat, sources, rewrite);
+}
+
+function transformComponent(
+  value: unknown,
+  field: FieldDefinition,
+  sources: FieldSources,
+  rewrite: (original: unknown) => unknown,
+): unknown {
+  const comp = sources.components[(field as { component: string }).component];
+  if (!comp) return value;
+  if (Array.isArray(value)) {
+    return value.map((item) => transformRecord(item, comp, sources, rewrite));
+  }
+  return transformRecord(value, comp, sources, rewrite);
+}
+
+function transformDynamicZone(
+  value: unknown,
+  sources: FieldSources,
+  rewrite: (original: unknown) => unknown,
+): unknown {
+  if (!Array.isArray(value)) return value;
+  return value.map((item: unknown) => {
+    const record = item as Record<string, unknown>;
+    const compSlug = typeof record.__component === "string" ? record.__component : "";
+    const comp = compSlug ? sources.components[compSlug] : undefined;
+    if (!comp) return item;
+    const next = transformRecord(record, comp, sources, rewrite);
+    return { ...(next as Record<string, unknown>), __component: compSlug };
+  });
+}
+
 /**
  * Transform every `media`/`upload` value in `value` using `rewrite`, recursing
  * through structural/composite fields according to the field tree.
@@ -70,43 +124,17 @@ function transformValue(
 
   switch (field.type) {
     case "array":
-    case "repeater": {
-      if (!Array.isArray(value)) return value;
-      const subFields = (field as { fields?: FieldDefinition[] }).fields ?? [];
-      return value.map((item) => transformRecord(item, subFields, sources, rewrite));
-    }
+    case "repeater":
+      return Array.isArray(value) ? transformArray(value, field, sources, rewrite) : value;
     case "object":
-    case "group": {
-      const subFields = (field as { fields?: FieldDefinition[] }).fields ?? [];
-      return transformRecord(value, subFields, sources, rewrite);
-    }
-    case "tabs": {
-      const flat: FieldDefinition[] = [];
-      for (const tab of (field as { tabs?: Array<{ fields: FieldDefinition[] }> }).tabs ?? []) {
-        flat.push(...(tab.fields ?? []));
-      }
-      return transformRecord(value, flat, sources, rewrite);
-    }
-    case "component": {
-      const comp = sources.components[(field as { component: string }).component];
-      if (!comp) return value;
-      if (Array.isArray(value)) {
-        return value.map((item) => transformRecord(item, comp, sources, rewrite));
-      }
-      return transformRecord(value, comp, sources, rewrite);
-    }
-    case "dynamicZone": {
-      if (!Array.isArray(value)) return value;
-      return value.map((item: unknown) => {
-        const record = item as Record<string, unknown>;
-        const compSlug = typeof record.__component === "string" ? record.__component : "";
-        const comp = compSlug ? sources.components[compSlug] : undefined;
-        if (!comp) return item;
-        const next = transformRecord(record, comp, sources, rewrite);
-        // Preserve the __component marker; transformRecord keeps other fields.
-        return { ...(next as Record<string, unknown>), __component: compSlug };
-      });
-    }
+    case "group":
+      return transformRecord(value, getSubFields(field), sources, rewrite);
+    case "tabs":
+      return transformTabs(value, field, sources, rewrite);
+    case "component":
+      return transformComponent(value, field, sources, rewrite);
+    case "dynamicZone":
+      return transformDynamicZone(value, sources, rewrite);
     default:
       return value;
   }

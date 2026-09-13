@@ -40,6 +40,165 @@ export const contentToolsRoute = createRoute({
   path: "/settings/content",
 });
 
+interface ExportDropdownProps {
+  disabled: boolean;
+  items: Array<{ label: string; onClick: () => void }>;
+  icon: typeof Globe;
+  label: string;
+}
+
+function ExportDropdown({ disabled, icon: Icon, items, label }: ExportDropdownProps) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" disabled={disabled}>
+          <Icon className="mr-1 h-4 w-4" />
+          {label}
+          <ChevronDown className="ml-1 h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        {items.map((item) => (
+          <DropdownMenuItem key={item.label} onClick={item.onClick}>
+            {item.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+interface ImportPreviewCardProps {
+  preview: ImportPreview;
+  importing: boolean;
+  onToggleCollection: (slug: string, selected: boolean) => void;
+  onToggleGlobal: (slug: string, selected: boolean) => void;
+  onSelectAll: () => void;
+  onDeselectAll: () => void;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function ImportPreviewCard({
+  importing,
+  onCancel,
+  onConfirm,
+  onDeselectAll,
+  onSelectAll,
+  onToggleCollection,
+  onToggleGlobal,
+  preview,
+}: ImportPreviewCardProps) {
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          Import Preview
+          <Badge variant="secondary">{preview.format.toUpperCase()}</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {preview.collections.length > 0 && (
+          <div>
+            <p className="text-sm font-medium mb-2">Collections</p>
+            {preview.collections.map((col) => (
+              <label key={col.slug} className="flex items-center gap-2 py-1">
+                <Checkbox
+                  checked={col.selected}
+                  onChange={(e) => onToggleCollection(col.slug, e.target.checked)}
+                />
+                <span className="text-sm">{col.slug}</span>
+                <span className="text-xs text-muted-foreground">
+                  ({col.count} {col.count === 1 ? "entry" : "entries"})
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
+
+        {preview.globals.length > 0 && (
+          <div>
+            <p className="text-sm font-medium mb-2">Globals</p>
+            {preview.globals.map((g) => (
+              <label key={g.slug} className="flex items-center gap-2 py-1">
+                <Checkbox
+                  checked={g.selected}
+                  onChange={(e) => onToggleGlobal(g.slug, e.target.checked)}
+                />
+                <span className="text-sm">{g.slug}</span>
+              </label>
+            ))}
+          </div>
+        )}
+
+        <div className="pt-2 border-t">
+          <p className="text-sm text-muted-foreground">
+            Total: <span className="font-medium text-foreground">{preview.totalEntries}</span>{" "}
+            {preview.totalEntries === 1 ? "entry" : "entries"} to import
+          </p>
+        </div>
+
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onCancel}>
+            <X className="mr-1 h-4 w-4" />
+            Cancel
+          </Button>
+          <Button onClick={onConfirm} disabled={importing}>
+            Import Selected
+          </Button>
+        </div>
+
+        <div className="flex gap-2 text-xs">
+          <Button variant="ghost" size="sm" onClick={onSelectAll}>
+            Select all
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onDeselectAll}>
+            Deselect all
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface ImportResultCardProps {
+  result: ImportResult;
+}
+
+function ImportResultCard({ result }: ImportResultCardProps) {
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle>Import summary</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-sm text-muted-foreground">
+          Imported <span className="font-medium text-foreground">{result.imported}</span> item(s)
+          and skipped <span className="font-medium text-foreground">{result.skipped}</span> (already
+          exist or failed validation).
+        </p>
+        {result.errors.length > 0 && (
+          <div className="max-h-60 overflow-auto rounded-md border p-3">
+            <p className="mb-2 text-xs font-medium text-muted-foreground">
+              {result.errors.length} skipped item(s)
+            </p>
+            <ul className="space-y-1 text-xs">
+              {result.errors.slice(0, 50).map((err, idx) => (
+                <li key={idx} className="flex gap-2">
+                  <span className="shrink-0 font-mono text-muted-foreground">
+                    {err.collection}/{err.id}
+                  </span>
+                  <span>{err.message}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function ContentTools() {
   const provider = useDataProvider();
   const { addToast } = useToast();
@@ -72,27 +231,21 @@ function ContentTools() {
     }
   }
 
-  async function handleExportGlobal(slug: string, format: ExportFormat = "json") {
+  async function handleExportItem(
+    slug: string,
+    type: "collection" | "global",
+    format: ExportFormat = "json",
+  ) {
     setExporting(true);
     try {
-      const doc = await buildExport(provider, fields, { collections: [], globals: [slug] });
-      const filename = `global-${slug}-${new Date().toISOString().slice(0, 10)}.${format}`;
+      const opts =
+        type === "collection"
+          ? { collections: [slug], globals: [] }
+          : { collections: [], globals: [slug] };
+      const doc = await buildExport(provider, fields, opts);
+      const filename = `${type}-${slug}-${new Date().toISOString().slice(0, 10)}.${format}`;
       downloadDocument(doc, filename, format);
-      addToast({ description: `Exported global "${slug}".`, title: "Exported" });
-    } catch (err) {
-      addToast({ description: String(err), title: "Export failed", variant: "destructive" });
-    } finally {
-      setExporting(false);
-    }
-  }
-
-  async function handleExportCollection(slug: string, format: ExportFormat = "json") {
-    setExporting(true);
-    try {
-      const doc = await buildExport(provider, fields, { collections: [slug], globals: [] });
-      const filename = `collection-${slug}-${new Date().toISOString().slice(0, 10)}.${format}`;
-      downloadDocument(doc, filename, format);
-      addToast({ description: `Exported collection "${slug}".`, title: "Exported" });
+      addToast({ description: `Exported ${type} "${slug}".`, title: "Exported" });
     } catch (err) {
       addToast({ description: String(err), title: "Export failed", variant: "destructive" });
     } finally {
@@ -112,53 +265,32 @@ function ContentTools() {
     try {
       const doc = await parseImportFile(file);
       const format = detectFormat(file.name);
-      const preview = buildImportPreview(doc, format?.name ?? "unknown");
       setParsedDoc(doc);
-      setPreview(preview);
+      setPreview(buildImportPreview(doc, format?.name ?? "unknown"));
     } catch (err) {
       setError(String(err));
       addToast({ description: String(err), title: "Import failed", variant: "destructive" });
     }
   }
 
-  function toggleCollection(slug: string, selected: boolean) {
+  function togglePreviewItem(type: "collection" | "global", slug: string, selected: boolean) {
     setPreview((prev) => {
       if (!prev) return prev;
+      const key = type === "collection" ? "collections" : "globals";
       return {
         ...prev,
-        collections: prev.collections.map((c) => (c.slug === slug ? { ...c, selected } : c)),
+        [key]: prev[key].map((item) => (item.slug === slug ? { ...item, selected } : item)),
       };
     });
   }
 
-  function toggleGlobal(slug: string, selected: boolean) {
+  function setAllSelected(selected: boolean) {
     setPreview((prev) => {
       if (!prev) return prev;
       return {
         ...prev,
-        globals: prev.globals.map((g) => (g.slug === slug ? { ...g, selected } : g)),
-      };
-    });
-  }
-
-  function selectAll() {
-    setPreview((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        collections: prev.collections.map((c) => ({ ...c, selected: true })),
-        globals: prev.globals.map((g) => ({ ...g, selected: true })),
-      };
-    });
-  }
-
-  function deselectAll() {
-    setPreview((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        collections: prev.collections.map((c) => ({ ...c, selected: false })),
-        globals: prev.globals.map((g) => ({ ...g, selected: false })),
+        collections: prev.collections.map((c) => ({ ...c, selected })),
+        globals: prev.globals.map((g) => ({ ...g, selected })),
       };
     });
   }
@@ -214,13 +346,24 @@ function ContentTools() {
     }
   }
 
-  function cancelImport() {
-    setPreview(null);
-    setParsedDoc(null);
-  }
-
   const percent =
     progress && progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
+
+  const exportAllItems = [
+    { label: "JSON (full fidelity)", onClick: () => void handleExport("json") },
+    { label: "CSV (flat fields only)", onClick: () => void handleExport("csv") },
+    { label: "XML (full fidelity)", onClick: () => void handleExport("xml") },
+  ];
+
+  const globalItems = globalSlugs.map((slug) => ({
+    label: slug,
+    onClick: () => void handleExportItem(slug, "global"),
+  }));
+
+  const collectionItems = collectionSlugs.map((slug) => ({
+    label: slug,
+    onClick: () => void handleExportItem(slug, "collection"),
+  }));
 
   return (
     <div>
@@ -242,27 +385,12 @@ function ContentTools() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button disabled={exporting}>
-                  <Download className="mr-1 h-4 w-4" />
-                  {exporting ? "Exporting..." : "Export all content"}
-                  <ChevronDown className="ml-1 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => void handleExport("json")}>
-                  <FileJson className="mr-2 h-4 w-4" />
-                  JSON (full fidelity)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => void handleExport("csv")}>
-                  CSV (flat fields only)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => void handleExport("xml")}>
-                  XML (full fidelity)
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <ExportDropdown
+              disabled={exporting}
+              items={exportAllItems}
+              icon={Download}
+              label={exporting ? "Exporting..." : "Export all content"}
+            />
           </CardContent>
         </Card>
 
@@ -303,22 +431,12 @@ function ContentTools() {
               <CardDescription>Export individual global settings.</CardDescription>
             </CardHeader>
             <CardContent>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" disabled={exporting}>
-                    <Globe className="mr-1 h-4 w-4" />
-                    Choose global
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  {globalSlugs.map((slug) => (
-                    <DropdownMenuItem key={slug} onClick={() => void handleExportGlobal(slug)}>
-                      {slug}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <ExportDropdown
+                disabled={exporting}
+                items={globalItems}
+                icon={Globe}
+                label="Choose global"
+              />
             </CardContent>
           </Card>
         )}
@@ -332,96 +450,31 @@ function ContentTools() {
               <CardDescription>Export individual collection entries.</CardDescription>
             </CardHeader>
             <CardContent>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" disabled={exporting}>
-                    <FileJson className="mr-1 h-4 w-4" />
-                    Choose collection
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  {collectionSlugs.map((slug) => (
-                    <DropdownMenuItem key={slug} onClick={() => void handleExportCollection(slug)}>
-                      {slug}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <ExportDropdown
+                disabled={exporting}
+                items={collectionItems}
+                icon={FileJson}
+                label="Choose collection"
+              />
             </CardContent>
           </Card>
         )}
       </div>
 
       {preview && (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Import Preview
-              <Badge variant="secondary">{preview.format.toUpperCase()}</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {preview.collections.length > 0 && (
-              <div>
-                <p className="text-sm font-medium mb-2">Collections</p>
-                {preview.collections.map((col) => (
-                  <label key={col.slug} className="flex items-center gap-2 py-1">
-                    <Checkbox
-                      checked={col.selected}
-                      onChange={(e) => toggleCollection(col.slug, e.target.checked)}
-                    />
-                    <span className="text-sm">{col.slug}</span>
-                    <span className="text-xs text-muted-foreground">
-                      ({col.count} {col.count === 1 ? "entry" : "entries"})
-                    </span>
-                  </label>
-                ))}
-              </div>
-            )}
-
-            {preview.globals.length > 0 && (
-              <div>
-                <p className="text-sm font-medium mb-2">Globals</p>
-                {preview.globals.map((g) => (
-                  <label key={g.slug} className="flex items-center gap-2 py-1">
-                    <Checkbox
-                      checked={g.selected}
-                      onChange={(e) => toggleGlobal(g.slug, e.target.checked)}
-                    />
-                    <span className="text-sm">{g.slug}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-
-            <div className="pt-2 border-t">
-              <p className="text-sm text-muted-foreground">
-                Total: <span className="font-medium text-foreground">{preview.totalEntries}</span>{" "}
-                {preview.totalEntries === 1 ? "entry" : "entries"} to import
-              </p>
-            </div>
-
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={cancelImport}>
-                <X className="mr-1 h-4 w-4" />
-                Cancel
-              </Button>
-              <Button onClick={() => void confirmImport()} disabled={importing}>
-                Import Selected
-              </Button>
-            </div>
-
-            <div className="flex gap-2 text-xs">
-              <Button variant="ghost" size="sm" onClick={selectAll}>
-                Select all
-              </Button>
-              <Button variant="ghost" size="sm" onClick={deselectAll}>
-                Deselect all
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <ImportPreviewCard
+          preview={preview}
+          importing={importing}
+          onToggleCollection={(slug, selected) => togglePreviewItem("collection", slug, selected)}
+          onToggleGlobal={(slug, selected) => togglePreviewItem("global", slug, selected)}
+          onSelectAll={() => setAllSelected(true)}
+          onDeselectAll={() => setAllSelected(false)}
+          onConfirm={() => void confirmImport()}
+          onCancel={() => {
+            setPreview(null);
+            setParsedDoc(null);
+          }}
+        />
       )}
 
       {importing && progress && (
@@ -445,38 +498,7 @@ function ContentTools() {
         </Alert>
       )}
 
-      {result && (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Import summary</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Imported <span className="font-medium text-foreground">{result.imported}</span>{" "}
-              item(s) and skipped{" "}
-              <span className="font-medium text-foreground">{result.skipped}</span> (already exist
-              or failed validation).
-            </p>
-            {result.errors.length > 0 && (
-              <div className="max-h-60 overflow-auto rounded-md border p-3">
-                <p className="mb-2 text-xs font-medium text-muted-foreground">
-                  {result.errors.length} skipped item(s)
-                </p>
-                <ul className="space-y-1 text-xs">
-                  {result.errors.slice(0, 50).map((err, idx) => (
-                    <li key={idx} className="flex gap-2">
-                      <span className="shrink-0 font-mono text-muted-foreground">
-                        {err.collection}/{err.id}
-                      </span>
-                      <span>{err.message}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+      {result && <ImportResultCard result={result} />}
     </div>
   );
 }
