@@ -1,19 +1,28 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createRoute } from "@tanstack/react-router";
-import { Download, Upload, FileJson } from "lucide-react";
+import { Download, Upload, FileJson, ChevronDown } from "lucide-react";
 import { useRef, useState, type ChangeEvent } from "react";
 
 import { collections, components, globals } from "@/__generated__/schema-registry";
 import { useToast } from "@/components/toast-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   buildExport,
   buildFieldSources,
+  detectFormat,
   downloadDocument,
   importDocument,
   parseImportFile,
+  type ExportFormat,
   type ImportProgress,
   type ImportResult,
 } from "@/lib/import-export";
@@ -39,13 +48,15 @@ function ContentTools() {
   const [progress, setProgress] = useState<ImportProgress | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [detectedFormat, setDetectedFormat] = useState<string | null>(null);
 
-  async function handleExport() {
+  async function handleExport(format: ExportFormat = "json") {
     setExporting(true);
     try {
       const doc = await buildExport(provider, fields);
-      downloadDocument(doc, `content-export-${new Date().toISOString().slice(0, 10)}.json`);
-      addToast({ description: "Content exported successfully.", title: "Exported" });
+      const filename = `content-export-${new Date().toISOString().slice(0, 10)}.${format}`;
+      downloadDocument(doc, filename, format);
+      addToast({ description: `Content exported as ${format.toUpperCase()}.`, title: "Exported" });
     } catch (err) {
       addToast({ description: String(err), title: "Export failed", variant: "destructive" });
     } finally {
@@ -57,6 +68,10 @@ function ContentTools() {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+
+    const format = detectFormat(file.name);
+    setDetectedFormat(format?.name ?? null);
+
     setImporting(true);
     setProgress(null);
     setResult(null);
@@ -107,14 +122,31 @@ function ContentTools() {
               <Download className="h-5 w-5" /> Export
             </CardTitle>
             <CardDescription>
-              Downloads a JSON file containing every collection entry and global.
+              Downloads a file containing every collection entry and global.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => void handleExport()} disabled={exporting}>
-              <Download className="mr-1 h-4 w-4" />
-              {exporting ? "Exporting…" : "Export all content"}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button disabled={exporting}>
+                  <Download className="mr-1 h-4 w-4" />
+                  {exporting ? "Exporting..." : "Export all content"}
+                  <ChevronDown className="ml-1 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => void handleExport("json")}>
+                  <FileJson className="mr-2 h-4 w-4" />
+                  JSON (full fidelity)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => void handleExport("csv")}>
+                  CSV (flat fields only)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => void handleExport("xml")}>
+                  XML (full fidelity)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </CardContent>
         </Card>
 
@@ -124,26 +156,29 @@ function ContentTools() {
               <Upload className="h-5 w-5" /> Import
             </CardTitle>
             <CardDescription>
-              Restore from an exported JSON file. Existing entries from the source are merged or
-              skipped rather than overwritten.
+              Restore from an exported file. Existing entries from the source are merged or skipped
+              rather than overwritten.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <input
               ref={fileInputRef}
               type="file"
-              accept="application/json,.json"
+              accept=".json,.csv,.xml,application/json,text/csv,application/xml"
               className="hidden"
               onChange={(e) => void handleImportFile(e)}
             />
-            <Button
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={importing}
-            >
-              <FileJson className="mr-1 h-4 w-4" />
-              {importing ? "Importing…" : "Choose file to import"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={importing}
+              >
+                <FileJson className="mr-1 h-4 w-4" />
+                {importing ? "Importing..." : "Choose file to import"}
+              </Button>
+              {detectedFormat && <Badge variant="secondary">{detectedFormat.toUpperCase()}</Badge>}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -151,7 +186,7 @@ function ContentTools() {
       {importing && progress && (
         <div className="mt-6">
           <div className="mb-2 flex justify-between text-sm text-muted-foreground">
-            <span>Importing…</span>
+            <span>Importing...</span>
             <span>
               {progress.done} / {progress.total}
             </span>
@@ -172,7 +207,10 @@ function ContentTools() {
       {result && (
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Import summary</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              Import summary
+              {detectedFormat && <Badge variant="outline">{detectedFormat.toUpperCase()}</Badge>}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">
