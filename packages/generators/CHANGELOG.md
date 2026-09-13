@@ -1,6 +1,6 @@
 # @blazing-cms/generators
 
-## 0.4.0
+## 0.3.5
 
 ### Minor Changes
 
@@ -17,9 +17,9 @@
 ### Patch Changes
 
 - Updated dependencies [a7a9e85]
-  - @blazing-cms/schema@0.4.0
-  - @blazing-cms/types@0.4.0
-  - @blazing-cms/validation@0.4.0
+  - @blazing-cms/schema@0.3.5
+  - @blazing-cms/types@0.3.5
+  - @blazing-cms/validation@0.3.5
 
 ## 0.3.4
 
