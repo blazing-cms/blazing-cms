@@ -20,18 +20,9 @@ import {
   type ImportResult,
 } from "@/lib/import-export";
 
-export function useImportExport(provider: DataProvider, fields: FieldSources) {
+function useExport(provider: DataProvider, fields: FieldSources) {
   const { addToast } = useToast();
-  const queryClient = useQueryClient();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [exporting, setExporting] = useState(false);
-  const [importing, setImporting] = useState(false);
-  const [progress, setProgress] = useState<ImportProgress | null>(null);
-  const [result, setResult] = useState<ImportResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [preview, setPreview] = useState<ImportPreview | null>(null);
-  const [parsedDoc, setParsedDoc] = useState<ImportExportDocument | null>(null);
 
   async function handleExport(format: ExportFormat = "json") {
     setExporting(true);
@@ -68,6 +59,21 @@ export function useImportExport(provider: DataProvider, fields: FieldSources) {
       setExporting(false);
     }
   }
+
+  return { exporting, handleExport, handleExportItem };
+}
+
+function useImport(provider: DataProvider, fields: FieldSources) {
+  const { addToast } = useToast();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [importing, setImporting] = useState(false);
+  const [progress, setProgress] = useState<ImportProgress | null>(null);
+  const [result, setResult] = useState<ImportResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<ImportPreview | null>(null);
+  const [parsedDoc, setParsedDoc] = useState<ImportExportDocument | null>(null);
 
   async function handleImportFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -182,10 +188,7 @@ export function useImportExport(provider: DataProvider, fields: FieldSources) {
     cancelImport,
     confirmImport,
     error,
-    exporting,
     fileInputRef,
-    handleExport,
-    handleExportItem,
     handleImportFile,
     importing,
     percent,
@@ -194,4 +197,11 @@ export function useImportExport(provider: DataProvider, fields: FieldSources) {
     setAllSelected,
     togglePreviewItem,
   };
+}
+
+export function useImportExport(provider: DataProvider, fields: FieldSources) {
+  const exp = useExport(provider, fields);
+  const imp = useImport(provider, fields);
+
+  return { ...exp, ...imp };
 }
