@@ -11,6 +11,7 @@ import {
   type ImportBatch,
   type ImportError,
   type ImportExportDocument,
+  type ImportPreview,
   type ImportProgress,
   type ImportResult,
 } from "./types";
@@ -135,10 +136,7 @@ export async function importDocument(
  */
 export function filterDocument(
   doc: ImportExportDocument,
-  preview: {
-    collections: Array<{ slug: string; selected: boolean }>;
-    globals: Array<{ slug: string; selected: boolean }>;
-  },
+  preview: ImportPreview,
 ): ImportExportDocument {
   const selectedCollectionSlugs = new Set(
     preview.collections.filter((c) => c.selected).map((c) => c.slug),
