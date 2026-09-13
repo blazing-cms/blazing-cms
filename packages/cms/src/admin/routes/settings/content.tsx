@@ -47,6 +47,7 @@ function ContentTools() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fields = buildFieldSources({ collections, components, globals });
+  const collectionSlugs = Object.keys(fields.collections);
   const globalSlugs = Object.keys(fields.globals);
 
   const [exporting, setExporting] = useState(false);
@@ -78,6 +79,20 @@ function ContentTools() {
       const filename = `global-${slug}-${new Date().toISOString().slice(0, 10)}.${format}`;
       downloadDocument(doc, filename, format);
       addToast({ description: `Exported global "${slug}".`, title: "Exported" });
+    } catch (err) {
+      addToast({ description: String(err), title: "Export failed", variant: "destructive" });
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function handleExportCollection(slug: string, format: ExportFormat = "json") {
+    setExporting(true);
+    try {
+      const doc = await buildExport(provider, fields, { collections: [slug], globals: [] });
+      const filename = `collection-${slug}-${new Date().toISOString().slice(0, 10)}.${format}`;
+      downloadDocument(doc, filename, format);
+      addToast({ description: `Exported collection "${slug}".`, title: "Exported" });
     } catch (err) {
       addToast({ description: String(err), title: "Export failed", variant: "destructive" });
     } finally {
@@ -299,6 +314,35 @@ function ContentTools() {
                 <DropdownMenuContent>
                   {globalSlugs.map((slug) => (
                     <DropdownMenuItem key={slug} onClick={() => void handleExportGlobal(slug)}>
+                      {slug}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </CardContent>
+          </Card>
+        )}
+
+        {collectionSlugs.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileJson className="h-5 w-5" /> Export Collections
+              </CardTitle>
+              <CardDescription>Export individual collection entries.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" disabled={exporting}>
+                    <FileJson className="mr-1 h-4 w-4" />
+                    Choose collection
+                    <ChevronDown className="ml-1 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {collectionSlugs.map((slug) => (
+                    <DropdownMenuItem key={slug} onClick={() => void handleExportCollection(slug)}>
                       {slug}
                     </DropdownMenuItem>
                   ))}
