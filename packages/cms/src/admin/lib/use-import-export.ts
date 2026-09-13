@@ -161,23 +161,36 @@ function useImport(provider: DataProvider, fields: FieldSources) {
     setParsedDoc(null);
   }
 
-  async function confirmImport() {
-    if (!parsedDoc || !preview) return;
+  function hasValidSelection(): boolean {
+    if (!parsedDoc || !preview) return false;
     if (countSelectedItems(preview) === 0) {
       addToast({
         description: "No items selected.",
         title: "Import cancelled",
         variant: "destructive",
       });
-      return;
+      return false;
     }
+    return true;
+  }
+
+  async function runFilteredImport() {
+    const doc = parsedDoc;
+    const prev = preview;
+    if (!doc || !prev) return;
+
+    const filtered = filterDocument(doc, prev);
+    await executeImport(filtered);
+  }
+
+  async function confirmImport() {
+    if (!hasValidSelection()) return;
 
     setImporting(true);
     resetImportState();
 
     try {
-      const filtered = filterDocument(parsedDoc, preview);
-      await executeImport(filtered);
+      await runFilteredImport();
     } catch (err) {
       setError(String(err));
       addToast({ description: String(err), title: "Import failed", variant: "destructive" });
