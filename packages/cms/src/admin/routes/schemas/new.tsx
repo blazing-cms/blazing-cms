@@ -44,6 +44,64 @@ function pluralize(type: SchemaType): string {
   return "collections";
 }
 
+function ProductionGuard() {
+  return (
+    <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
+      <Construction className="h-12 w-12 text-muted-foreground" />
+      <h2 className="text-2xl font-bold">Schema Builder</h2>
+      <p className="max-w-md text-muted-foreground">
+        The schema builder is only available in local development mode.
+      </p>
+    </div>
+  );
+}
+
+function SchemaTypeSelector({
+  onSelect,
+  type,
+}: {
+  type: SchemaType;
+  onSelect: (type: SchemaType) => void;
+}) {
+  return (
+    <div>
+      <Label htmlFor="type">Type</Label>
+      <div className="mt-1 flex gap-2">
+        {(["collection", "global", "component"] as SchemaType[]).map((t) => (
+          <Button key={t} variant={type === t ? "default" : "outline"} onClick={() => onSelect(t)}>
+            {t.charAt(0).toUpperCase() + t.slice(1)}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CodePreview({
+  code,
+  copied,
+  onCopy,
+}: {
+  code: string;
+  onCopy: () => void;
+  copied: boolean;
+}) {
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between">
+        <Label>Generated Code</Label>
+        <Button variant="outline" size="sm" onClick={onCopy}>
+          {copied ? <Check className="mr-1 h-4 w-4" /> : <Copy className="mr-1 h-4 w-4" />}
+          {copied ? "Copied!" : "Copy"}
+        </Button>
+      </div>
+      <pre className="overflow-x-auto rounded-lg border bg-muted p-4 text-sm leading-relaxed">
+        {code}
+      </pre>
+    </div>
+  );
+}
+
 function NewSchema() {
   const { addToast } = useToast();
   const [type, setType] = useState<SchemaType>("collection");
@@ -51,15 +109,7 @@ function NewSchema() {
   const [copied, setCopied] = useState(false);
 
   if (import.meta.env.PROD) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
-        <Construction className="h-12 w-12 text-muted-foreground" />
-        <h2 className="text-2xl font-bold">Schema Builder</h2>
-        <p className="max-w-md text-muted-foreground">
-          The schema builder is only available in local development mode.
-        </p>
-      </div>
-    );
+    return <ProductionGuard />;
   }
 
   const label = slug ? toLabel(slug) : "My Schema";
@@ -97,20 +147,7 @@ function NewSchema() {
       </div>
 
       <div className="mb-6 space-y-4">
-        <div>
-          <Label htmlFor="type">Type</Label>
-          <div className="mt-1 flex gap-2">
-            {(["collection", "global", "component"] as SchemaType[]).map((t) => (
-              <Button
-                key={t}
-                variant={type === t ? "default" : "outline"}
-                onClick={() => setType(t)}
-              >
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </Button>
-            ))}
-          </div>
-        </div>
+        <SchemaTypeSelector type={type} onSelect={setType} />
 
         <div>
           <Label htmlFor="slug">Slug</Label>
@@ -125,20 +162,7 @@ function NewSchema() {
         </div>
       </div>
 
-      {code && (
-        <div>
-          <div className="mb-2 flex items-center justify-between">
-            <Label>Generated Code</Label>
-            <Button variant="outline" size="sm" onClick={handleCopy}>
-              {copied ? <Check className="mr-1 h-4 w-4" /> : <Copy className="mr-1 h-4 w-4" />}
-              {copied ? "Copied!" : "Copy"}
-            </Button>
-          </div>
-          <pre className="overflow-x-auto rounded-lg border bg-muted p-4 text-sm leading-relaxed">
-            {code}
-          </pre>
-        </div>
-      )}
+      {code && <CodePreview code={code} onCopy={handleCopy} copied={copied} />}
     </div>
   );
 }
