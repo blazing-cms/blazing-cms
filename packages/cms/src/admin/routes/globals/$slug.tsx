@@ -109,6 +109,7 @@ function GlobalEditor() {
               field={field}
               value={values[field.name]}
               onChange={(v) => setValues((prev) => ({ ...prev, [field.name]: v }))}
+              values={values}
             />
           ))}
           <Button type="submit" disabled={saving}>

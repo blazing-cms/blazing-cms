@@ -26,7 +26,17 @@ export type RenderChild = (
   field: FieldDefinition,
   value: unknown,
   onChange: (value: unknown) => void,
+  values?: Record<string, unknown>,
 ) => ReactNode;
+
+function generateSlug(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 export function renderStructureInput(
   field: FieldDefinition,
@@ -34,6 +44,7 @@ export function renderStructureInput(
   onChange: (v: unknown) => void,
   id?: string,
   renderChild?: RenderChild,
+  values?: Record<string, unknown>,
 ): ReactNode {
   switch (field.type) {
     case "select": {
@@ -130,12 +141,15 @@ export function renderStructureInput(
 
     case "slug": {
       const f = field as SlugField;
+      const sourceValue = f.source ? String(values?.[f.source] ?? "") : "";
+      const displayValue = !value && sourceValue ? generateSlug(sourceValue) : String(value ?? "");
+
       return (
         <div className="space-y-1">
           <Input
             id={id}
             type="text"
-            value={String(value ?? "")}
+            value={displayValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
             placeholder={f.source ? `Auto-generated from ${f.source}...` : "slug-value"}
           />
