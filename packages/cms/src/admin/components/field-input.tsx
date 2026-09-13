@@ -13,6 +13,7 @@ interface FieldInputProps {
   value: unknown;
   onChange: (value: unknown) => void;
   error?: string;
+  values?: Record<string, unknown>;
 }
 
 function FieldLabel({ field, fieldId }: { field: FieldDefinition; fieldId: string }) {
@@ -32,14 +33,15 @@ type Renderer = (
   value: unknown,
   onChange: (v: unknown) => void,
   id?: string,
+  values?: Record<string, unknown>,
 ) => ReactNode;
 
-const renderChild: RenderChild = (field, value, onChange) => (
-  <FieldInput field={field} value={value} onChange={onChange} />
+const renderChild: RenderChild = (field, value, onChange, values) => (
+  <FieldInput field={field} value={value} onChange={onChange} values={values} />
 );
 
-const structuralRenderer: Renderer = (field, value, onChange, id) =>
-  renderStructureInput(field, value, onChange, id, renderChild);
+const structuralRenderer: Renderer = (field, value, onChange, id, values) =>
+  renderStructureInput(field, value, onChange, id, renderChild, values);
 
 const fieldRenderers: Partial<Record<string, Renderer>> = {
   array: structuralRenderer,
@@ -78,13 +80,14 @@ function renderField(
   value: unknown,
   onChange: (v: unknown) => void,
   id?: string,
+  values?: Record<string, unknown>,
 ) {
   const renderer = fieldRenderers[field.type];
-  if (renderer) return renderer(field, value, onChange, id);
+  if (renderer) return renderer(field, value, onChange, id, values);
   return <p className="text-sm text-muted-foreground">Unknown field type: {field.type}</p>;
 }
 
-export function FieldInput({ error, field, onChange, value }: FieldInputProps) {
+export function FieldInput({ error, field, onChange, value, values }: FieldInputProps) {
   const { roleIds } = usePermissions();
   const fieldPerms = field.admin?.permissions;
   const canRead = rolesOverlap(roleIds, fieldPerms?.read);
@@ -100,7 +103,7 @@ export function FieldInput({ error, field, onChange, value }: FieldInputProps) {
       {field.admin?.description && (
         <p className="text-xs text-muted-foreground">{field.admin.description}</p>
       )}
-      {renderField(field, value, handleChange, fieldId)}
+      {renderField(field, value, handleChange, fieldId, values)}
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );

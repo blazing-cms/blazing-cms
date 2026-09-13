@@ -103,6 +103,42 @@ export const collections: CollectionDefinition[] = [
     "slug": "date"
   },
   {
+    "admin": {
+      "defaultSort": "name",
+      "useAsTitle": "name"
+    },
+    "fields": [
+      {
+        "name": "name",
+        "type": "text",
+        "label": "Name",
+        "validation": {
+          "required": true
+        }
+      },
+      {
+        "name": "slug",
+        "type": "slug",
+        "source": "name",
+        "unique": true
+      },
+      {
+        "name": "description",
+        "type": "textarea",
+        "label": "Description"
+      }
+    ],
+    "labels": {
+      "plural": "Departments",
+      "singular": "Department"
+    },
+    "slug": "departments",
+    "timestamps": {
+      "createdAt": true,
+      "updatedAt": true
+    }
+  },
+  {
     "fields": [
       {
         "name": "title",
@@ -222,6 +258,52 @@ export const collections: CollectionDefinition[] = [
         "unique": true
       },
       {
+        "name": "blocks",
+        "type": "dynamicZone",
+        "components": [
+          "content-hero",
+          "content-faq",
+          "content-cta"
+        ],
+        "label": "Content Blocks"
+      },
+      {
+        "name": "seo",
+        "type": "component",
+        "component": "seo-meta"
+      }
+    ],
+    "labels": {
+      "plural": "Pages",
+      "singular": "Page"
+    },
+    "slug": "pages",
+    "timestamps": {
+      "createdAt": true,
+      "updatedAt": true
+    }
+  },
+  {
+    "admin": {
+      "defaultSort": "-createdAt",
+      "useAsTitle": "title"
+    },
+    "fields": [
+      {
+        "name": "title",
+        "type": "text",
+        "label": "Title",
+        "validation": {
+          "required": true
+        }
+      },
+      {
+        "name": "slug",
+        "type": "slug",
+        "source": "title",
+        "unique": true
+      },
+      {
         "name": "excerpt",
         "type": "textarea",
         "label": "Excerpt"
@@ -236,6 +318,12 @@ export const collections: CollectionDefinition[] = [
         "type": "boolean",
         "defaultValue": false,
         "label": "Published"
+      },
+      {
+        "name": "featured",
+        "type": "boolean",
+        "defaultValue": false,
+        "label": "Featured"
       },
       {
         "name": "publishedAt",
@@ -267,6 +355,23 @@ export const collections: CollectionDefinition[] = [
         "kind": "manyToOne",
         "label": "Author",
         "to": "users"
+      },
+      {
+        "name": "tags",
+        "type": "array",
+        "fields": [
+          {
+            "name": "tag",
+            "type": "text",
+            "label": "Tag"
+          }
+        ],
+        "label": "Tags"
+      },
+      {
+        "name": "seo",
+        "type": "component",
+        "component": "seo-meta"
       }
     ],
     "labels": {
@@ -393,6 +498,76 @@ export const collections: CollectionDefinition[] = [
       "singular": "Select Field"
     },
     "slug": "select"
+  },
+  {
+    "admin": {
+      "defaultSort": "-createdAt",
+      "useAsTitle": "name"
+    },
+    "fields": [
+      {
+        "name": "name",
+        "type": "text",
+        "label": "Name",
+        "validation": {
+          "required": true
+        }
+      },
+      {
+        "name": "slug",
+        "type": "slug",
+        "source": "name",
+        "unique": true
+      },
+      {
+        "name": "bio",
+        "type": "textarea",
+        "label": "Bio"
+      },
+      {
+        "name": "department",
+        "type": "relation",
+        "kind": "manyToOne",
+        "label": "Department",
+        "to": "departments"
+      },
+      {
+        "name": "published",
+        "type": "boolean",
+        "defaultValue": false,
+        "label": "Published"
+      },
+      {
+        "name": "featured",
+        "type": "boolean",
+        "defaultValue": false,
+        "label": "Featured"
+      },
+      {
+        "name": "publishedAt",
+        "type": "datetime",
+        "label": "Published At"
+      },
+      {
+        "name": "seo",
+        "type": "component",
+        "component": "seo-meta"
+      }
+    ],
+    "labels": {
+      "plural": "Teachers",
+      "singular": "Teacher"
+    },
+    "slug": "teachers",
+    "timestamps": {
+      "createdAt": true,
+      "updatedAt": true
+    },
+    "workflow": {
+      "reviewerRoles": [
+        "role-editor"
+      ]
+    }
   },
   {
     "fields": [
@@ -837,6 +1012,96 @@ export const components: ComponentDefinition[] = [
         "label": "CTA URL"
       }
     ],
+    "label": "CTA Block",
+    "slug": "content-cta"
+  },
+  {
+    "fields": [
+      {
+        "name": "heading",
+        "type": "text",
+        "label": "Heading",
+        "validation": {
+          "required": true
+        }
+      },
+      {
+        "name": "items",
+        "type": "array",
+        "fields": [
+          {
+            "name": "question",
+            "type": "text",
+            "label": "Question",
+            "validation": {
+              "required": true
+            }
+          },
+          {
+            "name": "answer",
+            "type": "textarea",
+            "label": "Answer",
+            "validation": {
+              "required": true
+            }
+          }
+        ],
+        "label": "FAQ Items"
+      }
+    ],
+    "label": "FAQ Block",
+    "slug": "content-faq"
+  },
+  {
+    "fields": [
+      {
+        "name": "heading",
+        "type": "text",
+        "label": "Heading",
+        "validation": {
+          "required": true
+        }
+      },
+      {
+        "name": "subheading",
+        "type": "text",
+        "label": "Subheading"
+      },
+      {
+        "name": "backgroundImage",
+        "type": "text",
+        "label": "Background Image URL"
+      }
+    ],
+    "label": "Hero Block",
+    "slug": "content-hero"
+  },
+  {
+    "fields": [
+      {
+        "name": "heading",
+        "type": "text",
+        "label": "Heading",
+        "validation": {
+          "required": true
+        }
+      },
+      {
+        "name": "body",
+        "type": "text",
+        "label": "Body"
+      },
+      {
+        "name": "ctaLabel",
+        "type": "text",
+        "label": "CTA Label"
+      },
+      {
+        "name": "ctaUrl",
+        "type": "text",
+        "label": "CTA URL"
+      }
+    ],
     "label": "CTA",
     "slug": "cta"
   },
@@ -909,6 +1174,28 @@ export const components: ComponentDefinition[] = [
     ],
     "label": "Media Card",
     "slug": "media-card"
+  },
+  {
+    "fields": [
+      {
+        "name": "metaTitle",
+        "type": "text",
+        "label": "Meta Title",
+        "validation": {
+          "maxLength": 60
+        }
+      },
+      {
+        "name": "metaDescription",
+        "type": "textarea",
+        "label": "Meta Description",
+        "validation": {
+          "maxLength": 160
+        }
+      }
+    ],
+    "label": "SEO Meta",
+    "slug": "seo-meta"
   },
   {
     "fields": [

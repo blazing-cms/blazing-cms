@@ -320,6 +320,13 @@ export async function generate(options: GenerateOptions): Promise<void> {
   const loader = new SchemaLoader(schemaDir, options.forceReload);
   const schema = await loader.load();
 
+  if (schema.errors.length > 0) {
+    console.error("\n✗ Schema loading failed:");
+    schema.errors.forEach((err) => console.error(`  ${err}`));
+    process.exit(1);
+    return;
+  }
+
   console.warn(
     `  Found ${schema.collections.length} collections, ${schema.globals.length} globals\n`,
   );

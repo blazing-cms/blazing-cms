@@ -30,10 +30,10 @@ import type {
   SlugField,
   FieldDefinition,
   FieldBase,
+  SelectOption,
 } from "@blazing-cms/types";
 
 type FieldOptions = Partial<Omit<FieldBase, "name" | "type">>;
-type SelectOption = { label: string; value: string };
 
 export function text(name: string, options?: FieldOptions): TextField {
   return { name, type: "text", ...options };
@@ -75,7 +75,10 @@ export function json(name: string, options?: FieldOptions): JsonField {
   return { name, type: "json", ...options };
 }
 
-export function richText(name: string, options?: FieldOptions): RichTextField {
+export function richText(
+  name: string,
+  options?: FieldOptions & { toolbar?: "minimal" | "basic" | "full" },
+): RichTextField {
   return { name, type: "richText", ...options };
 }
 

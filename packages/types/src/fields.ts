@@ -110,6 +110,7 @@ export interface JsonField extends FieldBase {
 
 export interface RichTextField extends FieldBase {
   type: "richText";
+  toolbar?: "minimal" | "basic" | "full" | undefined;
 }
 
 export interface MarkdownField extends FieldBase {
@@ -204,6 +205,8 @@ export interface SlugField extends FieldBase {
   source?: string | undefined;
   unique?: boolean | undefined;
 }
+
+export type SelectOption = { label: string; value: string };
 
 export type FieldDefinition =
   | TextField

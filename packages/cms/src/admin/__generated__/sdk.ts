@@ -48,6 +48,15 @@ export const date = {
   delete: (id: string) => client.collection("date").delete(id),
 };
 
+export const departments = {
+  findMany: (options?: Parameters<ReturnType<typeof client.collection>["findMany"]>[0]) =>
+    client.collection("departments").findMany(options),
+  findById: (id: string) => client.collection("departments").findById(id),
+  create: (data: Record<string, unknown>) => client.collection("departments").create(data),
+  update: (id: string, data: Record<string, unknown>) => client.collection("departments").update(id, data),
+  delete: (id: string) => client.collection("departments").delete(id),
+};
+
 export const dynamicZone = {
   findMany: (options?: Parameters<ReturnType<typeof client.collection>["findMany"]>[0]) =>
     client.collection("dynamic-zone").findMany(options),
@@ -82,6 +91,15 @@ export const number = {
   create: (data: Record<string, unknown>) => client.collection("number").create(data),
   update: (id: string, data: Record<string, unknown>) => client.collection("number").update(id, data),
   delete: (id: string) => client.collection("number").delete(id),
+};
+
+export const pages = {
+  findMany: (options?: Parameters<ReturnType<typeof client.collection>["findMany"]>[0]) =>
+    client.collection("pages").findMany(options),
+  findById: (id: string) => client.collection("pages").findById(id),
+  create: (data: Record<string, unknown>) => client.collection("pages").create(data),
+  update: (id: string, data: Record<string, unknown>) => client.collection("pages").update(id, data),
+  delete: (id: string) => client.collection("pages").delete(id),
 };
 
 export const posts = {
@@ -127,6 +145,15 @@ export const select = {
   create: (data: Record<string, unknown>) => client.collection("select").create(data),
   update: (id: string, data: Record<string, unknown>) => client.collection("select").update(id, data),
   delete: (id: string) => client.collection("select").delete(id),
+};
+
+export const teachers = {
+  findMany: (options?: Parameters<ReturnType<typeof client.collection>["findMany"]>[0]) =>
+    client.collection("teachers").findMany(options),
+  findById: (id: string) => client.collection("teachers").findById(id),
+  create: (data: Record<string, unknown>) => client.collection("teachers").create(data),
+  update: (id: string, data: Record<string, unknown>) => client.collection("teachers").update(id, data),
+  delete: (id: string) => client.collection("teachers").delete(id),
 };
 
 export const text = {

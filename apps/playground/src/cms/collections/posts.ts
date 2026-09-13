@@ -7,6 +7,8 @@ import {
   select,
   relation,
   slug,
+  component,
+  array,
 } from "@blazing-cms/schema";
 
 export default defineCollection({
@@ -17,6 +19,7 @@ export default defineCollection({
     textarea("excerpt", { label: "Excerpt" }),
     text("content", { label: "Content" }),
     boolean("published", { defaultValue: false, label: "Published" }),
+    boolean("featured", { defaultValue: false, label: "Featured" }),
     datetime("publishedAt", { label: "Published At" }),
     select("category", {
       label: "Category",
@@ -27,6 +30,8 @@ export default defineCollection({
       ],
     }),
     relation("author", { kind: "manyToOne", label: "Author", to: "users" }),
+    array("tags", { fields: [text("tag", { label: "Tag" })], label: "Tags" }),
+    component("seo", { component: "seo-meta" }),
   ],
   labels: { plural: "Posts", singular: "Post" },
   slug: "posts",

@@ -18,7 +18,7 @@ export default defineCollection({
     group: "Content",
   },
   fields: [
-    text("title", { required: true }),
+    text("title", { validation: { required: true } }),
     slug("slug", { sourceField: "title" }),
     richText("content"),
   ],

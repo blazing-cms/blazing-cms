@@ -55,6 +55,7 @@ import { generate } from "../commands/generate.js";
 const fakeSchema = {
   collections: [{ slug: "posts" }, { slug: "pages" }],
   components: [{ slug: "hero" }],
+  errors: [],
   globals: [{ slug: "site-settings" }],
 };
 
@@ -168,6 +169,7 @@ describe("generate", () => {
         },
       ],
       components: [],
+      errors: [],
       globals: [],
     });
 
@@ -198,6 +200,7 @@ describe("generate", () => {
         },
       ],
       components: [],
+      errors: [],
       globals: [],
     });
 
@@ -251,5 +254,25 @@ describe("generate", () => {
       expect.stringContaining("app-config.ts"),
       expect.stringContaining("Blazing CMS"),
     );
+  });
+
+  it("exits with code 1 when schema loading fails", async () => {
+    mockExistsSync.mockReturnValue(true);
+    const mockExit = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockLoad.mockResolvedValue({
+      collections: [],
+      components: [],
+      errors: ["  ✗ Failed to load /path/to/broken.ts: SyntaxError"],
+      globals: [],
+    });
+
+    await generate({});
+
+    expect(mockExit).toHaveBeenCalledWith(1);
+    expect(mockConsoleError).toHaveBeenCalledWith("\n✗ Schema loading failed:");
+    expect(mockRun).not.toHaveBeenCalled();
+    mockExit.mockRestore();
+    mockConsoleError.mockRestore();
   });
 });

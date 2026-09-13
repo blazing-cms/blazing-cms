@@ -194,6 +194,19 @@
         "files": ["packages/cms/src/admin/routes/login.tsx"],
         "maxCrap": 35,
         "reason": "login form with email/password and Google sign-in plus post-login admin claim enforcement"
+      },
+      {
+        "files": ["packages/cms/src/admin/routes/schemas/new.tsx"],
+        "maxCrap": 50,
+        "reason": "schema builder with type selector, slug input, code generation, and clipboard copy"
+      },
+      {
+        "files": ["packages/cms/src/admin/components/field-types/structure-inputs.tsx"],
+        "maxCrap": 1500,
+        "maxUnitSize": 400,
+        "maxCyclomatic": 40,
+        "maxCognitive": 35,
+        "reason": "large switch statement rendering all structural field types (select, array, object, dynamicZone, etc.)"
       }
     ]
   },
@@ -214,7 +227,9 @@
       "packages/sdk/src/types.ts",
       "packages/sdk/src/collection.ts",
       "packages/sdk/src/analytics.ts",
-      "packages/sdk/src/media.ts"
+      "packages/sdk/src/media.ts",
+      "packages/cms/src/commands/utils/prompt.ts",
+      "packages/create-app/src/index.ts"
     ]
   },
   "entry": ["packages/*/src/index.ts", "scripts/serve-spa.mjs"]
